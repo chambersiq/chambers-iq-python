@@ -1,0 +1,73 @@
+from typing import List, Optional
+import uuid
+from datetime import datetime
+from app.repositories.case_repository import CaseRepository
+from app.repositories.client_repository import ClientRepository
+from app.api.v1.schemas.case import Case, CaseCreate
+
+class CaseService:
+    def __init__(self):
+        self.repo = CaseRepository()
+        self.client_repo = ClientRepository()
+
+    def create_case(self, company_id: str, client_id: str, data: CaseCreate) -> Case:
+        case_id = str(uuid.uuid4())
+        now = datetime.utcnow().isoformat()
+        
+        case_dict = data.model_dump()
+        
+        # Auto-generate case number if not provided
+        if not case_dict.get("caseNumber"):
+            # Simple auto-generation: CASE-{YYYY}-{UUID_PREFIX}
+            # In a real app, this would likely be a counter in DB
+            year = datetime.utcnow().year
+            short_id = case_id[:8].upper()
+            case_dict["caseNumber"] = f"CASE-{year}-{short_id}"
+
+        # Fetch client details to denormalize clientName
+        client = self.client_repo.get_by_id(company_id, client_id)
+        client_name = "Unknown Client"
+        if client:
+            if client.get("type") == "individual":
+                client_name = f"{client.get('firstName', '')} {client.get('lastName', '')}".strip()
+            else:
+                client_name = client.get("companyName", "")
+
+        case_dict.update({
+            "companyId#clientId": f"{company_id}#{client_id}", # PK
+            "companyId": company_id,
+            "clientId": client_id,
+            "clientName": client_name, # Denormalized
+            "caseId": case_id, # SK
+            "createdAt": now,
+            "updatedAt": now
+        })
+        
+        self.repo.create(case_dict)
+        return Case(**case_dict)
+
+    def get_cases(self, company_id: str, client_id: str) -> List[Case]:
+        items = self.repo.get_all_for_client(company_id, client_id)
+        return [Case(**item) for item in items]
+
+    def get_all_cases(self, company_id: str) -> List[Case]:
+        items = self.repo.get_all_for_company(company_id)
+        return [Case(**item) for item in items]
+
+    def get_case(self, company_id: str, client_id: str, case_id: str) -> Optional[Case]:
+        item = self.repo.get_by_id(company_id, client_id, case_id)
+        return Case(**item) if item else None
+
+    def update_case(self, company_id: str, client_id: str, case_id: str, data: CaseCreate) -> Case:
+        updates = data.model_dump(exclude_unset=True)
+        updates["updatedAt"] = datetime.utcnow().isoformat()
+        
+        attributes = self.repo.update(company_id, client_id, case_id, updates)
+        return Case(**attributes)
+
+    def get_case_by_id(self, company_id: str, case_id: str) -> Optional[Case]:
+        item = self.repo.get_by_id_scan(company_id, case_id)
+        return Case(**item) if item else None
+
+    def delete_case(self, company_id: str, client_id: str, case_id: str) -> None:
+        self.repo.delete(company_id, client_id, case_id)

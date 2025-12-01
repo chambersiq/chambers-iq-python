@@ -1,0 +1,31 @@
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+
+class DocumentBase(BaseModel):
+    caseId: str
+    name: str
+    type: str
+    fileSize: int
+    mimeType: str
+    description: Optional[str] = None
+    tags: Optional[List[str]] = []
+
+class DocumentCreate(DocumentBase):
+    pass
+
+class Document(DocumentBase):
+    companyId: str
+    documentId: str
+    url: str
+    s3Key: str
+    
+    # AI Analysis
+    aiStatus: str = "pending"
+    aiSummary: Optional[str] = None
+    aiConfidence: Optional[float] = None
+    extractedData: Optional[Dict[str, Any]] = None
+
+    uploadedBy: Optional[str] = None
+    createdAt: str
+    updatedAt: str
