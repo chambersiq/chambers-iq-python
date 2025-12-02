@@ -8,14 +8,14 @@ router = APIRouter()
 def get_client_service():
     return ClientService()
 
-@router.get("/{company_name}/{company_id}/clients", response_model=List[Client])
+@router.get("/{company_id}/clients", response_model=List[Client])
 def get_clients(
     company_id: str, 
     service: ClientService = Depends(get_client_service)
 ):
     return service.get_clients(company_id)
 
-@router.post("/{company_name}/{company_id}/clients", response_model=Client)
+@router.post("/{company_id}/clients", response_model=Client)
 def create_client(
     company_id: str, 
     client_data: Union[IndividualClient, CompanyClient], 
@@ -23,7 +23,7 @@ def create_client(
 ):
     return service.create_client(company_id, client_data)
 
-@router.get("/{company_name}/{company_id}/clients/{client_id}", response_model=Client)
+@router.get("/{company_id}/clients/{client_id}", response_model=Client)
 def get_client(
     company_id: str, 
     client_id: str, 
