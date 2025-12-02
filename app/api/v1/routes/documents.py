@@ -8,7 +8,7 @@ router = APIRouter()
 def get_document_service():
     return DocumentService()
 
-@router.get("/{company_name}/{company_id}/cases/{case_id}/documents", response_model=List[Document])
+@router.get("/{company_id}/cases/{case_id}/documents", response_model=List[Document])
 def get_documents(
     company_id: str, 
     case_id: str, 
@@ -16,7 +16,7 @@ def get_documents(
 ):
     return service.get_documents(company_id, case_id)
 
-@router.post("/{company_name}/{company_id}/documents/upload-url", response_model=Dict[str, Any])
+@router.post("/{company_id}/documents/upload-url", response_model=Dict[str, Any])
 def create_upload_url(
     company_id: str, 
     doc_data: DocumentCreate, 
@@ -25,7 +25,7 @@ def create_upload_url(
     doc, upload_url = service.create_document_url(company_id, doc_data)
     return {"document": doc, "uploadUrl": upload_url}
 
-@router.get("/{company_name}/{company_id}/documents/{document_id}", response_model=Document)
+@router.get("/{company_id}/documents/{document_id}", response_model=Document)
 def get_document(
     company_id: str, 
     document_id: str, 

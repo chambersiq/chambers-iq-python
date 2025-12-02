@@ -8,7 +8,7 @@ router = APIRouter()
 def get_draft_service():
     return DraftService()
 
-@router.get("/{company_name}/{company_id}/cases/{case_id}/drafts", response_model=List[Draft])
+@router.get("/{company_id}/cases/{case_id}/drafts", response_model=List[Draft])
 def get_drafts(
     company_id: str, 
     case_id: str, 
@@ -16,7 +16,7 @@ def get_drafts(
 ):
     return service.get_drafts(company_id, case_id)
 
-@router.post("/{company_name}/{company_id}/cases/{case_id}/drafts", response_model=Draft)
+@router.post("/{company_id}/cases/{case_id}/drafts", response_model=Draft)
 def create_draft(
     company_id: str, 
     case_id: str, 
@@ -27,7 +27,7 @@ def create_draft(
         raise HTTPException(status_code=400, detail="Case ID mismatch")
     return service.create_draft(company_id, draft)
 
-@router.get("/{company_name}/{company_id}/drafts/{draft_id}", response_model=Draft)
+@router.get("/{company_id}/drafts/{draft_id}", response_model=Draft)
 def get_draft(
     company_id: str, 
     draft_id: str, 
