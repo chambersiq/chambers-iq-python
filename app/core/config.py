@@ -26,7 +26,10 @@ class Settings(BaseSettings):
     # API Configuration
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Chambers IQ API"
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "https://chambers-iq-frontend-production.up.railway.app"
+    ]
     
     # Feature Flags
     ENABLE_AI_DRAFTING: bool = True
