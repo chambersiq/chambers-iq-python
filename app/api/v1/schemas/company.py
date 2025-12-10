@@ -32,15 +32,19 @@ class UserBase(BaseModel):
     role: str = "admin"
 
 class UserCreate(UserBase):
-    pass
+    allowedClients: Optional[list[str]] = None
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
     status: Optional[str] = None
+    allowedClients: Optional[list[str]] = None
 
 class User(UserBase):
     companyId: str
     userId: str
     status: str = "active"
+    allowedClients: Optional[list[str]] = []
+    allowedClients: Optional[list[str]] = []
     createdAt: str
+    archived: bool = False

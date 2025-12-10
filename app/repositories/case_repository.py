@@ -1,8 +1,9 @@
 from typing import Optional, List
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 from app.repositories.base_repository import BaseRepository
 from app.core.config import settings
 
+from datetime import datetime
 from app.utils.dynamodb_utils import parse_float_to_decimal
 
 class CaseRepository(BaseRepository):
@@ -16,10 +17,14 @@ class CaseRepository(BaseRepository):
         )
         return response.get("Items", [])
 
-    def get_all_for_company(self, company_id: str) -> List[dict]:
+    def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
         # Scan with filter for MVP. In production, use GSI.
+        filter_expr = Key("companyId").eq(company_id)
+        if not include_archived:
+            filter_expr &= Attr("archived").ne(True)
+
         response = self.table.scan(
-            FilterExpression=Key("companyId").eq(company_id)
+            FilterExpression=filter_expr
         )
         return response.get("Items", [])
 
@@ -68,8 +73,41 @@ class CaseRepository(BaseRepository):
         items = response.get("Items", [])
         return items[0] if items else None
 
+    def get_by_id_global(self, case_id: str) -> Optional[dict]:
+        response = self.table.scan(
+            FilterExpression=Key("caseId").eq(case_id)
+        )
+        items = response.get("Items", [])
+        return items[0] if items else None
+    
+    def get_all_by_client_global(self, client_id: str) -> List[dict]:
+        response = self.table.scan(
+            FilterExpression=Key("clientId").eq(client_id)
+        )
+        return response.get("Items", [])
+
     def delete(self, company_id: str, client_id: str, case_id: str) -> None:
         pk = f"{company_id}#{client_id}"
-        self.table.delete_item(
-            Key={"companyId#clientId": pk, "caseId": case_id}
+        self.table.update_item(
+            Key={"companyId#clientId": pk, "caseId": case_id},
+            UpdateExpression="SET archived = :val, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":val": True,
+                ":now": datetime.utcnow().isoformat()
+            }
         )
+
+    def count_for_company(self, company_id: str) -> int:
+        # Scan with filter for MVP. In production, use GSI.
+        response = self.table.scan(
+            FilterExpression=Key("companyId").eq(company_id),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)
+
+    def count_created_after(self, company_id: str, iso_date: str) -> int:
+        response = self.table.scan(
+            FilterExpression=Key("companyId").eq(company_id) & Attr("createdAt").gte(iso_date),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)

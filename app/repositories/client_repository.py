@@ -1,5 +1,6 @@
 from typing import Optional, List
-from boto3.dynamodb.conditions import Key
+from datetime import datetime
+from boto3.dynamodb.conditions import Key, Attr
 from app.repositories.base_repository import BaseRepository
 from app.core.config import settings
 
@@ -26,6 +27,14 @@ class ClientRepository(BaseRepository):
             Key={"companyId": company_id, "clientId": client_id}
         )
         return response.get("Item")
+
+    def get_by_id_global(self, client_id: str) -> Optional[dict]:
+        # Scan for global lookup (Pragmatic REST support)
+        response = self.table.scan(
+            FilterExpression=Key("clientId").eq(client_id)
+        )
+        items = response.get("Items", [])
+        return items[0] if items else None
 
     def create(self, item: dict) -> dict:
         logger.warning(f"DEBUG: Creating client: {item}")
@@ -54,4 +63,37 @@ class ClientRepository(BaseRepository):
             ExpressionAttributeValues=expr_attr_values,
             ReturnValues="ALL_NEW"
         )
-        return response.get("Attributes")
+    def count_for_company(self, company_id: str) -> int:
+        response = self.table.query(
+            KeyConditionExpression=Key("companyId").eq(company_id),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)
+
+    def count_created_after(self, company_id: str, iso_date: str) -> int:
+        response = self.table.query(
+            KeyConditionExpression=Key("companyId").eq(company_id),
+            FilterExpression=Attr("createdAt").gte(iso_date) & Attr("archived").ne(True),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)
+
+    def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
+        # Client lookup usually uses Query on companyId
+        response = self.table.query(
+            KeyConditionExpression=Key("companyId").eq(company_id)
+        )
+        items = response.get("Items", [])
+        if not include_archived:
+            return [i for i in items if not i.get('archived')]
+        return items
+
+    def delete(self, company_id: str, client_id: str) -> None:
+         self.table.update_item(
+            Key={"companyId": company_id, "clientId": client_id},
+            UpdateExpression="SET archived = :val, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":val": True,
+                ":now": datetime.utcnow().isoformat()
+            }
+        )

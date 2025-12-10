@@ -35,18 +35,34 @@ class ClientService:
         
         return response_dict
 
-    def get_clients(self, company_id: str) -> List[dict]:
+    def get_clients(self, company_id: str, allowed_clients: Optional[List[str]] = None) -> List[dict]:
         items = self.repo.get_all_for_company(company_id)
         clients = []
         for item in items:
             # Flatten the 'data' dictionary into the top-level dictionary
             data = item.pop('data', {})
             client_dict = {**item, **data}
+            
+            # Filter if restricted
+            if allowed_clients is not None:
+                # If allowed_clients is empty list, they see NOTHING (except maybe they shouldn't exist)
+                # We check if clientId is in the allowed list
+                if client_dict.get('clientId') not in allowed_clients:
+                    continue
+            
             clients.append(client_dict)
         return clients
 
     def get_client(self, company_id: str, client_id: str) -> Optional[dict]:
         item = self.repo.get_by_id(company_id, client_id)
+        if item:
+            data = item.pop('data', {})
+            client_dict = {**item, **data}
+            return client_dict
+        return None
+
+    def get_client_by_id(self, client_id: str) -> Optional[dict]:
+        item = self.repo.get_by_id_global(client_id)
         if item:
             data = item.pop('data', {})
             client_dict = {**item, **data}

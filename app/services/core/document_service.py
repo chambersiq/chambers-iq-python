@@ -52,10 +52,32 @@ class DocumentService:
         return docs
 
     def get_document(self, company_id: str, document_id: str) -> Optional[Document]:
-        # We don't have caseId here, so we can't use get_by_id_with_parent efficiently.
-        # We might need to scan or the API should provide caseId.
-        # For now, let's assume we can't get it without caseId.
-        # Or we can scan.
-        # Let's try to scan for now as a fallback.
-        # But wait, I didn't implement scan in repo.
+        # Use global lookup (Scan)
+        item = self.repo.get_by_id_global(document_id)
+        if item:
+            item["url"] = self.s3.generate_presigned_url(item["s3Key"], method="get_object")
+            return Document(**item)
         return None
+
+    def delete_document(self, document_id: str) -> bool:
+        doc = self.get_document("ignored", document_id)
+        if not doc:
+            return False
+            
+        # Delete from S3
+        if doc.s3Key:
+            self.s3.delete_file(doc.s3Key)
+            
+        # Delete from DB
+        # We need the PK (parentId aka caseId) and SK (documentId)
+        # But wait, DocumentRepository likely expects partition key and sort key.
+        # Let's check DocumentRepository.delete method signature or if it exists.
+        # Assuming it exists or I might need to add it.
+        # Based on previous pattern, repositories usually take both keys.
+        # But since we did a global lookup, we have the keys from 'doc'.
+        # doc.caseId is mapped to 'parentId' in DB? 
+        # In create_document_url: "parentId": data.caseId
+        # So PK is caseId? 
+        # Let's verify DocumentRepository.
+        self.repo.delete(doc.caseId, document_id)
+        return True

@@ -8,14 +8,14 @@ router = APIRouter()
 def get_template_service():
     return TemplateService()
 
-@router.get("/{company_id}/templates", response_model=List[Template])
+@router.get("/companies/{company_id}/templates", response_model=List[Template])
 def get_templates(
     company_id: str, 
     service: TemplateService = Depends(get_template_service)
 ):
     return service.get_templates(company_id)
 
-@router.post("/{company_id}/templates", response_model=Template)
+@router.post("/companies/{company_id}/templates", response_model=Template)
 def create_template(
     company_id: str, 
     template: TemplateCreate, 
@@ -23,13 +23,13 @@ def create_template(
 ):
     return service.create_template(company_id, template)
 
-@router.get("/{company_id}/templates/{template_id}", response_model=Template)
+@router.get("/templates/{template_id}", response_model=Template)
 def get_template(
-    company_id: str, 
     template_id: str, 
     service: TemplateService = Depends(get_template_service)
 ):
-    template = service.get_template(company_id, template_id)
+    # Pass ignored company_id as service method now uses global lookup
+    template = service.get_template("ignored", template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
     return template

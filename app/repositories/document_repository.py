@@ -1,5 +1,6 @@
 from typing import Optional, List
-from boto3.dynamodb.conditions import Key
+from datetime import datetime
+from boto3.dynamodb.conditions import Key, Attr
 from app.repositories.base_repository import BaseRepository
 from app.core.config import settings
 
@@ -42,6 +43,49 @@ class DocumentRepository(BaseRepository):
         )
         return response.get("Item")
 
+    def get_by_id_global(self, document_id: str) -> Optional[dict]:
+        response = self.table.scan(
+            FilterExpression=Key("documentId").eq(document_id)
+        )
+        items = response.get("Items", [])
+        return items[0] if items else None
+
     def create(self, item: dict) -> dict:
         self.save(item)
         return item
+
+    def delete(self, parent_id: str, document_id: str) -> None:
+        self.table.update_item(
+            Key={"parentId": parent_id, "documentId": document_id},
+            UpdateExpression="SET archived = :val, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":val": True,
+                ":now": datetime.utcnow().isoformat()
+            }
+        )
+
+    def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
+        # Scan with filter for MVP
+        filter_expr = Key("companyId").eq(company_id)
+        if not include_archived:
+            filter_expr &= Attr("archived").ne(True)
+            
+        response = self.table.scan(
+            FilterExpression=filter_expr
+        )
+        return response.get("Items", [])
+
+    def count_for_company(self, company_id: str) -> int:
+        # Scan with filter for MVP
+        response = self.table.scan(
+            FilterExpression=Key("companyId").eq(company_id) & Attr("archived").ne(True),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)
+
+    def count_created_after(self, company_id: str, iso_date: str) -> int:
+        response = self.table.scan(
+            FilterExpression=Key("companyId").eq(company_id) & Attr("createdAt").gte(iso_date),
+            Select='COUNT'
+        )
+        return response.get("Count", 0)

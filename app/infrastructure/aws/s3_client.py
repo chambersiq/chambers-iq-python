@@ -31,4 +31,12 @@ class S3Client:
             print(f"Error generating presigned URL: {e}")
             return None
 
+    def delete_file(self, object_name: str):
+        try:
+            self.client.delete_object(Bucket=settings.S3_BUCKET_NAME, Key=object_name)
+            return True
+        except ClientError as e:
+            print(f"Error deleting file from S3: {e}")
+            return False
+
 s3_client = S3Client()

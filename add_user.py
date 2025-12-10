@@ -3,15 +3,21 @@ from botocore.exceptions import ClientError
 import uuid
 from datetime import datetime
 
+import os
+from app.core.config import settings
+
 # Configuration
-TABLE_NAME = "chambers-iq-beta-users-v2"
-REGION = "ap-south-1"
+TABLE_NAME = settings.DYNAMODB_TABLE_USERS
+REGION = settings.AWS_REGION
+
+# Get email from env or default
+EMAIL = os.getenv("USER_EMAIL", "ganesh.panaskar1@gmail.com")
 
 USER_DATA = {
-    "email": "ganesh.panaskar1@gmail.com",
+    "email": EMAIL,
     "companyId": "company-001",  # Default company
     "userId": str(uuid.uuid4()),
-    "name": "Ganesh Panaskar",
+    "name": "Admin User",
     "role": "admin",
     "status": "active",
     "createdAt": datetime.utcnow().isoformat(),

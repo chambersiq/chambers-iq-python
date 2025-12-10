@@ -19,10 +19,8 @@ class TemplateRepository(BaseRepository):
         # Here we don't have the full key.
         return None
 
-    def get_by_id_scan(self, company_id: str, template_id: str) -> Optional[dict]:
-        # Query by companyId and filter by templateId
-        response = self.table.query(
-            KeyConditionExpression=Key("companyId").eq(company_id),
+    def get_by_id_global(self, template_id: str) -> Optional[dict]:
+        response = self.table.scan(
             FilterExpression=Key("templateId").eq(template_id)
         )
         items = response.get("Items", [])

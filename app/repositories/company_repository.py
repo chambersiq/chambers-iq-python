@@ -1,4 +1,5 @@
 from typing import Optional, List
+from datetime import datetime
 from boto3.dynamodb.conditions import Key
 from app.repositories.base_repository import BaseRepository
 from app.core.config import settings
@@ -33,10 +34,35 @@ class UserRepository(BaseRepository):
         logger.warning(f"DEBUG: Found item: {item}")
         return item
 
-    def get_all_for_company(self, company_id: str) -> List[dict]:
+    def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
         # Query using GSI 'by_company'
+        filter_expr = Key("companyId").eq(company_id)
+        if not include_archived:
+            # Note: GSI Queries can support FilterExpression
+            # However, boto3 conditions might be tricky with Key objects if attributes aren't keys.
+            # 'archived' is a non-key attribute.
+            pass # We will filter in python for GSI query simplicity or use FilterExpression with Attr
+
         response = self.table.query(
             IndexName="by_company",
             KeyConditionExpression=Key("companyId").eq(company_id)
         )
-        return response.get("Items", [])
+        items = response.get("Items", [])
+        
+        if not include_archived:
+            return [i for i in items if not i.get('archived')]
+        return items
+
+    def create(self, item: dict) -> dict:
+        self.save(item)
+        return item
+
+    def delete(self, email: str):
+        self.table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET archived = :val, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":val": True,
+                ":now": datetime.utcnow().isoformat()
+            }
+        )

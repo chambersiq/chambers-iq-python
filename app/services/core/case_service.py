@@ -71,3 +71,34 @@ class CaseService:
 
     def delete_case(self, company_id: str, client_id: str, case_id: str) -> None:
         self.repo.delete(company_id, client_id, case_id)
+
+    def get_case_by_id_only(self, case_id: str) -> Optional[Case]:
+        item = self.repo.get_by_id_global(case_id)
+        return Case(**item) if item else None
+
+    def get_cases_by_client(self, client_id: str) -> List[Case]:
+        items = self.repo.get_all_by_client_global(client_id)
+        return [Case(**item) for item in items]
+
+    def create_case_for_client(self, client_id: str, data: CaseCreate) -> Case:
+        # We need company_id to create a case (part of PK).
+        # We must look up the client first to find their company_id.
+        client_repo = ClientRepository()
+        client = client_repo.get_by_id_global(client_id)
+        if not client:
+             raise ValueError("Client not found")
+        
+        company_id = client["companyId"]
+        return self.create_case(company_id, client_id, data)
+
+    def update_case_by_id(self, case_id: str, data: CaseCreate) -> Case:
+        # We need keys to update.
+        case = self.get_case_by_id_only(case_id)
+        if not case:
+            raise ValueError("Case not found")
+        return self.update_case(case.companyId, case.clientId, case_id, data)
+
+    def delete_case_by_id(self, case_id: str) -> None:
+        case = self.get_case_by_id_only(case_id)
+        if case:
+            self.delete_case(case.companyId, case.clientId, case_id)

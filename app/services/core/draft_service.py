@@ -28,5 +28,5 @@ class DraftService:
         return [Draft(**item) for item in items]
 
     def get_draft(self, company_id: str, draft_id: str) -> Optional[Draft]:
-        item = self.repo.get_by_id(company_id, draft_id)
+        item = self.repo.get_by_id_global(draft_id)
         return Draft(**item) if item else None

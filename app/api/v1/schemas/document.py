@@ -10,6 +10,7 @@ class DocumentBase(BaseModel):
     mimeType: str
     description: Optional[str] = None
     tags: Optional[List[str]] = []
+    archived: bool = False
 
 class DocumentCreate(DocumentBase):
     pass

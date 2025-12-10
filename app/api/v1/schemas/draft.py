@@ -7,7 +7,9 @@ class DraftBase(BaseModel):
     caseId: str
     clientId: str
     status: str = "draft"
+    status: str = "draft"
     content: str
+    archived: bool = False
 
 class DraftCreate(DraftBase):
     pass

@@ -23,7 +23,9 @@ class ClientBase(BaseModel):
     # Common Additional
     notes: Optional[str] = None
     tags: Optional[List[str]] = []
+    tags: Optional[List[str]] = []
     referralSource: Optional[str] = None
+    archived: bool = False
 
 class IndividualClient(ClientBase):
     clientType: Literal['individual']

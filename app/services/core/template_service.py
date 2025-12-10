@@ -67,7 +67,7 @@ class TemplateService:
         return templates
 
     def get_template(self, company_id: str, template_id: str) -> Optional[Template]:
-        item = self.repo.get_by_id_scan(company_id, template_id)
+        item = self.repo.get_by_id_global(template_id)
         if not item:
             return None
             

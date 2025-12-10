@@ -33,7 +33,7 @@ def get_company(
     return company
 
 # --- Users ---
-@router.post("/{company_name}/{company_id}/users", response_model=User)
+@router.post("/companies/{company_id}/users", response_model=User)
 def create_user(
     company_id: str, 
     user: UserCreate, 
@@ -44,7 +44,7 @@ def create_user(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/{company_name}/{company_id}/users", response_model=List[User])
+@router.get("/companies/{company_id}/users", response_model=List[User])
 def get_users(
     company_id: str, 
     service: UserService = Depends(get_user_service)
