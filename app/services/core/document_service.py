@@ -53,15 +53,15 @@ class DocumentService:
         return docs
 
     def get_document(self, company_id: str, document_id: str) -> Optional[Document]:
-        # Use global lookup (Scan)
-        item = self.repo.get_by_id_global(document_id)
+        # Scoped lookup
+        item = self.repo.get_by_id(company_id, document_id)
         if item:
             item["url"] = self.s3.generate_presigned_url(item["s3Key"], method="get_object")
             return Document(**item)
         return None
 
-    def delete_document(self, document_id: str) -> bool:
-        doc = self.get_document("ignored", document_id)
+    def delete_document(self, company_id: str, document_id: str) -> bool:
+        doc = self.get_document(company_id, document_id)
         if not doc:
             return False
             
@@ -70,22 +70,17 @@ class DocumentService:
             self.s3.delete_file(doc.s3Key)
             
         # Delete from DB
-        # We need the PK (parentId aka caseId) and SK (documentId)
-        # But wait, DocumentRepository likely expects partition key and sort key.
-        # Let's check DocumentRepository.delete method signature or if it exists.
-        # Assuming it exists or I might need to add it.
-        # Based on previous pattern, repositories usually take both keys.
-        # But since we did a global lookup, we have the keys from 'doc'.
-        # doc.caseId is mapped to 'parentId' in DB? 
-        # In create_document_url: "parentId": data.caseId
-        # So PK is caseId? 
-        # Let's verify DocumentRepository.
-        self.repo.delete(doc.caseId, document_id)
+        self.repo.delete(company_id, document_id)
         return True
 
     def analyze_document(self, document_id: str, client_position: str = "Unknown") -> bool:
-        doc = self.get_document("ignored", document_id)
-        if not doc or not doc.s3Key:
+        # Background task doesn't have company_id. Use global lookup (Scan SK).
+        item = self.repo.get_by_id_global(document_id)
+        if not item:
+            return False
+        
+        doc = Document(**item)
+        if not doc.s3Key:
             return False
             
         # 1. Fetch File
@@ -107,14 +102,14 @@ class DocumentService:
                 text = file_content.decode("utf-8", errors="ignore")
         except Exception as e:
             print(f"Extraction Error: {e}")
-            self.repo.update(doc.caseId, document_id, {
+            self.repo.update(doc.companyId, document_id, {
                 "aiStatus": "failed", 
                 "aiSummary": f"Failed to extract text: {str(e)}"
             })
             return False
 
         if not text.strip():
-             self.repo.update(doc.caseId, document_id, {
+             self.repo.update(doc.companyId, document_id, {
                 "aiStatus": "failed", 
                 "aiSummary": "Empty document text"
             })
@@ -144,12 +139,13 @@ class DocumentService:
                     "isBundle": result.get("is_bundle")
                 }
             }
-            self.repo.update(doc.caseId, document_id, updates)
+            # Update using companyId as parentId in repo arguments
+            self.repo.update(doc.companyId, document_id, updates)
             return True
             
         except Exception as e:
             print(f"Agent Error: {e}")
-            self.repo.update(doc.caseId, document_id, {
+            self.repo.update(doc.companyId, document_id, {
                 "aiStatus": "failed", 
                 "aiSummary": f"AI Error: {str(e)}"
             })

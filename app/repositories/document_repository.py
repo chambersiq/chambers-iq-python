@@ -9,41 +9,32 @@ class DocumentRepository(BaseRepository):
         super().__init__(settings.DYNAMODB_TABLE_DOCUMENTS)
 
     def get_all_for_case(self, company_id: str, case_id: str) -> List[dict]:
-        # PK is parentId (which is caseId)
+        # Use GSI 'by_case'
         response = self.table.query(
-            KeyConditionExpression=Key("parentId").eq(case_id)
+            IndexName='by_case',
+            KeyConditionExpression=Key("caseId").eq(case_id)
         )
-        return response.get("Items", [])
+        items = response.get("Items", [])
+        # Filter by companyId for security
+        return [i for i in items if i.get('companyId') == company_id]
 
     def get_by_id(self, company_id: str, document_id: str) -> Optional[dict]:
-        # This method signature is tricky because we need parentId (caseId) to get the item.
-        # But the interface assumes company_id.
-        # If we don't have caseId, we can't get the item efficiently if PK is parentId.
-        # Unless we use GSI or Scan.
-        # For now, I'll assume the caller passes case_id as company_id or I need to change the signature.
-        # But wait, the route `get_document` only has `document_id`.
-        # If I can't get it by ID without parentId, I might need to scan or change the API to include caseId.
-        # The API route is `/{company_name}/{company_id}/documents/{document_id}`.
-        # It doesn't have `case_id`.
-        
-        # I'll use Scan for now if I don't have caseId, OR I should change the API to be nested under case.
-        # `/{company_name}/{company_id}/cases/{case_id}/documents/{document_id}`
-        # The current route is `.../documents/{document_id}`.
-        
-        # Let's check if I can query by GSI.
-        # If not, I'll have to Scan.
-        
-        # Actually, let's look at the `create` method.
-        # It saves the item.
-        pass
-
-    def get_by_id_with_parent(self, parent_id: str, document_id: str) -> Optional[dict]:
+        # Keys: companyId, documentId
         response = self.table.get_item(
-            Key={"parentId": parent_id, "documentId": document_id}
+            Key={"companyId": company_id, "documentId": document_id}
         )
         return response.get("Item")
 
+    def get_by_id_with_parent(self, parent_id: str, document_id: str) -> Optional[dict]:
+        # Deprecated: parent_id was the old PK. Now we need companyId. 
+        # This method assumes we don't have companyId.
+        # We can scan or require companyId.
+        # For compatibility, let's scan by documentId if possible as a fallback or return None.
+        return self.get_by_id_global(document_id)
+
     def get_by_id_global(self, document_id: str) -> Optional[dict]:
+        # Scan by documentId (SK). Not ideal but rare.
+        # Alternatively create GSI on documentId if global lookup needed.
         response = self.table.scan(
             FilterExpression=Key("documentId").eq(document_id)
         )
@@ -55,8 +46,16 @@ class DocumentRepository(BaseRepository):
         return item
 
     def delete(self, parent_id: str, document_id: str) -> None:
+        # 'parent_id' arg name legacy. It's actually company_id now.
+        # We should rename the arg in interface, but for now treating as company_id
+        # Wait, the interface in Service passes company_id?
+        # Service: delete_document(document_id). It doesn't pass company_id. 
+        # So service needs to fetch doc first to get company_id?
+        # Yes.
+        
+        # If parent_id passed is actually company_id:
         self.table.update_item(
-            Key={"parentId": parent_id, "documentId": document_id},
+            Key={"companyId": parent_id, "documentId": document_id},
             UpdateExpression="SET archived = :val, updatedAt = :now",
             ExpressionAttributeValues={
                 ":val": True,
@@ -65,6 +64,7 @@ class DocumentRepository(BaseRepository):
         )
 
     def update(self, parent_id: str, document_id: str, updates: dict) -> None:
+        # parent_id here is company_id
         expr_parts = []
         expr_values = {}
         expr_names = {}
@@ -79,116 +79,37 @@ class DocumentRepository(BaseRepository):
             expr_names[key_placeholder] = k
             
         self.table.update_item(
-            Key={"parentId": parent_id, "documentId": document_id},
+            Key={"companyId": parent_id, "documentId": document_id},
             UpdateExpression="SET " + ", ".join(expr_parts),
             ExpressionAttributeValues=expr_values,
             ExpressionAttributeNames=expr_names
         )
 
     def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
-        # Scan with filter for MVP
-        filter_expr = Key("companyId").eq(company_id)
-        if not include_archived:
-            filter_expr &= Attr("archived").ne(True)
-            
-        response = self.table.scan(
-            FilterExpression=filter_expr
-        )
-        return response.get("Items", [])
-
-    def count_for_company(self, company_id: str) -> int:
-        # Scan with filter for MVP
-        response = self.table.scan(
-            FilterExpression=Key("companyId").eq(company_id) & Attr("archived").ne(True),
-            Select='COUNT'
-        )
-        return response.get("Count", 0)
-
-    def count_created_after(self, company_id: str, iso_date: str) -> int:
-        response = self.table.scan(
-            FilterExpression=Key("companyId").eq(company_id) & Attr("createdAt").gte(iso_date),
-            Select='COUNT'
-        )
-        return response.get("Count", 0)
-
-    def get_all_for_case(self, company_id: str, case_id: str) -> List[dict]:
-        # PK is parentId (which is caseId)
+        # Direct Query on PK
         response = self.table.query(
-            KeyConditionExpression=Key("parentId").eq(case_id)
-        )
-        return response.get("Items", [])
-
-    def get_by_id(self, company_id: str, document_id: str) -> Optional[dict]:
-        # This method signature is tricky because we need parentId (caseId) to get the item.
-        # But the interface assumes company_id.
-        # If we don't have caseId, we can't get the item efficiently if PK is parentId.
-        # Unless we use GSI or Scan.
-        # For now, I'll assume the caller passes case_id as company_id or I need to change the signature.
-        # But wait, the route `get_document` only has `document_id`.
-        # If I can't get it by ID without parentId, I might need to scan or change the API to include caseId.
-        # The API route is `/{company_name}/{company_id}/documents/{document_id}`.
-        # It doesn't have `case_id`.
-        
-        # I'll use Scan for now if I don't have caseId, OR I should change the API to be nested under case.
-        # `/{company_name}/{company_id}/cases/{case_id}/documents/{document_id}`
-        # The current route is `.../documents/{document_id}`.
-        
-        # Let's check if I can query by GSI.
-        # If not, I'll have to Scan.
-        
-        # Actually, let's look at the `create` method.
-        # It saves the item.
-        pass
-
-    def get_by_id_with_parent(self, parent_id: str, document_id: str) -> Optional[dict]:
-        response = self.table.get_item(
-            Key={"parentId": parent_id, "documentId": document_id}
-        )
-        return response.get("Item")
-
-    def get_by_id_global(self, document_id: str) -> Optional[dict]:
-        response = self.table.scan(
-            FilterExpression=Key("documentId").eq(document_id)
+            KeyConditionExpression=Key("companyId").eq(company_id)
         )
         items = response.get("Items", [])
-        return items[0] if items else None
-
-    def create(self, item: dict) -> dict:
-        self.save(item)
-        return item
-
-    def delete(self, parent_id: str, document_id: str) -> None:
-        self.table.update_item(
-            Key={"parentId": parent_id, "documentId": document_id},
-            UpdateExpression="SET archived = :val, updatedAt = :now",
-            ExpressionAttributeValues={
-                ":val": True,
-                ":now": datetime.utcnow().isoformat()
-            }
-        )
-
-    def get_all_for_company(self, company_id: str, include_archived: bool = False) -> List[dict]:
-        # Scan with filter for MVP
-        filter_expr = Key("companyId").eq(company_id)
+        
         if not include_archived:
-            filter_expr &= Attr("archived").ne(True)
-            
-        response = self.table.scan(
-            FilterExpression=filter_expr
-        )
-        return response.get("Items", [])
+            return [i for i in items if not i.get('archived')]
+        return items
 
     def count_for_company(self, company_id: str) -> int:
-        # Scan with filter for MVP
-        response = self.table.scan(
-            FilterExpression=Key("companyId").eq(company_id) & Attr("archived").ne(True),
+        # Query Count
+        response = self.table.query(
+            KeyConditionExpression=Key("companyId").eq(company_id),
             Select='COUNT'
         )
         return response.get("Count", 0)
 
     def count_created_after(self, company_id: str, iso_date: str) -> int:
-        response = self.table.scan(
-            FilterExpression=Key("companyId").eq(company_id) & Attr("createdAt").gte(iso_date),
+        response = self.table.query(
+            KeyConditionExpression=Key("companyId").eq(company_id),
+            FilterExpression=Attr("createdAt").gte(iso_date),
             Select='COUNT'
         )
         return response.get("Count", 0)
+
+

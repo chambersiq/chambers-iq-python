@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-@router.get("/check-email", response_model=User)
+@router.get("/users/check-email", response_model=User)
 def check_user_email(
     email: str = Query(..., description="Email to check"),
     service: UserService = Depends(get_user_service)
@@ -24,12 +24,15 @@ def check_user_email(
     logger.warning(f"API DEBUG: Request for email: {email}")
     logger.warning(f"API DEBUG: Using table: {service.user_repo.table.name}")
     
-    user = service.get_user_by_email_global(email)
+    # Enforce lowercase for PK lookup
+    email_lower = email.lower()
+    
+    user = service.get_user_by_email_global(email_lower)
     logger.warning(f"API DEBUG: Lookup result: {user}")
     
     if not user:
-        logger.warning("API DEBUG: User not found, raising 404")
-        error_msg = f"User not found in table '{service.user_repo.table.name}' (Region: {service.user_repo.table.meta.client.meta.region_name})"
+        logger.warning(f"API DEBUG: User {email_lower} not found, raising 404. (Original: {email})")
+        error_msg = f"User not found in table '{service.user_repo.table.name}'"
         raise HTTPException(status_code=404, detail=error_msg)
     return user
 

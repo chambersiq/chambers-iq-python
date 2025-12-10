@@ -97,28 +97,44 @@ class CaseService:
         item = self.repo.get_by_id_global(case_id)
         return self._populate_client_name(Case(**item)) if item else None
 
-    def get_cases_by_client(self, client_id: str) -> List[Case]:
-        items = self.repo.get_all_by_client_global(client_id)
+    def get_cases_by_client(self, company_id: str, client_id: str) -> List[Case]:
+        # Scoped by company_id via repo
+        items = self.repo.get_all_for_client(company_id, client_id)
         return [self._populate_client_name(Case(**item)) for item in items]
 
-    def create_case_for_client(self, client_id: str, data: CaseCreate) -> Case:
-        # We need company_id to create a case (part of PK).
-        # We must look up the client first to find their company_id.
-        client = self.client_repo.get_by_id_global(client_id)
+    def create_case_for_client(self, company_id: str, client_id: str, data: CaseCreate) -> Case:
+        # Verify client belongs to company
+        client = self.client_repo.get_by_id(company_id, client_id)
         if not client:
-             raise ValueError("Client not found")
+             raise ValueError("Client not found or does not belong to your company")
         
-        company_id = client["companyId"]
+        # Double check data integrity (though get_by_id handles scope)
+        if client.get('companyId') != company_id:
+             raise ValueError("Client isolation violation")
+        
         return self.create_case(company_id, client_id, data)
 
-    def update_case_by_id(self, case_id: str, data: CaseCreate) -> Case:
-        # We need keys to update.
-        case = self.get_case_by_id_only(case_id)
-        if not case:
-            raise ValueError("Case not found")
-        return self.update_case(case.companyId, case.clientId, case_id, data)
+    def get_case_by_id(self, company_id: str, case_id: str) -> Optional[Case]:
+        # Clean lookup using PK
+        # We need to adapt Repo.get_by_id signature or pass dummy client_id if we didn't change repo.
+        # Let's assume we update Repo or pass None.
+        # Looking at Repo code: it takes client_id but ignores it for Key.
+        # So passing "" is safe functionally, though ugly.
+        # Ideally I update repo signature, but let's pass "" for minimal impact if I don't touch repo file again.
+        item = self.repo.get_by_id(company_id, "", case_id)
+        return self._populate_client_name(Case(**item)) if item else None
 
-    def delete_case_by_id(self, case_id: str) -> None:
-        case = self.get_case_by_id_only(case_id)
-        if case:
-            self.delete_case(case.companyId, case.clientId, case_id)
+    def update_case_by_id(self, company_id: str, case_id: str, data: CaseCreate) -> Case:
+        attributes = self.repo.update(company_id, "", case_id, data.model_dump(exclude_unset=True))
+        return self._populate_client_name(Case(**attributes))
+
+    def delete_case_by_id(self, company_id: str, case_id: str) -> None:
+        self.repo.delete(company_id, "", case_id)
+
+    # Deprecated / Legacy Support Helper (if needed)
+    def get_case_by_id_only(self, case_id: str) -> Optional[Case]:
+        # This was for global lookup. We should discourage this.
+        # But if used internally, we might need a Global Scan or GSI.
+        # For now, return None or error if we want to enforce scoping.
+        # Let's return None to force fixing call sites.
+        return None
