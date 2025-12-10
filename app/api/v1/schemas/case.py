@@ -31,7 +31,7 @@ class CaseBase(BaseModel):
     opposingPartyPosition: Optional[str] = None
     keyFacts: Optional[List[str]] = []
     legalIssues: Optional[str] = None
-    desiredOutcome: Optional[str] = None
+    prayer: Optional[str] = None # Formerly desiredOutcome
     caseStrategyNotes: Optional[str] = None
 
     # Case Details

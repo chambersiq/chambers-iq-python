@@ -17,12 +17,11 @@ class ClientBase(BaseModel):
     streetAddress: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
-    zipCode: Optional[str] = None
+    pincode: Optional[str] = None # Formerly zipCode
     country: Optional[str] = None
     
     # Common Additional
     notes: Optional[str] = None
-    tags: Optional[List[str]] = []
     tags: Optional[List[str]] = []
     referralSource: Optional[str] = None
     archived: bool = False
@@ -35,7 +34,7 @@ class IndividualClient(ClientBase):
     alternatePhone: Optional[str] = None
     dateOfBirth: Optional[str] = None
     gender: Optional[str] = None
-    ssn: Optional[str] = None
+    pan: Optional[str] = None # Formerly ssn
     
     employerName: Optional[str] = None
     jobTitle: Optional[str] = None
@@ -49,7 +48,7 @@ class CompanyClient(ClientBase):
     companyName: str
     dbaName: Optional[str] = None
     companyType: Optional[str] = None
-    taxId: Optional[str] = None
+    taxId: Optional[str] = None # Keeping taxId as generic (can be GSTIN)
     industry: Optional[str] = None
     companySize: Optional[str] = None
     website: Optional[str] = None
