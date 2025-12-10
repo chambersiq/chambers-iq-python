@@ -25,3 +25,8 @@ class Template(TemplateBase):
     createdAt: str
     updatedAt: str
     createdBy: Optional[str] = None
+
+class TemplateGenerationRequest(BaseModel):
+    generationId: str
+    prompt: str
+

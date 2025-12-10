@@ -81,3 +81,38 @@ class TemplateService:
                 print(f"Error fetching template content from S3: {e}")
                 
         return Template(**item, content=content)
+
+    def upload_sample_document(self, company_id: str, generation_id: str, file_name: str, file_content: bytes, content_type: str) -> str:
+        s3_key = f"{company_id}/templates/ai-generation/{generation_id}/{file_name}"
+        try:
+            print(f"Uploading sample document to S3: {settings.S3_BUCKET_NAME}/{s3_key}")
+            self.s3.client.put_object(
+                Bucket=settings.S3_BUCKET_NAME,
+                Key=s3_key,
+                Body=file_content,
+                ContentType=content_type
+            )
+            print("Upload successful")
+            return s3_key
+        except Exception as e:
+            print(f"Error uploading sample document to S3: {e}")
+            raise e
+
+    def generate_template_from_samples(self, company_id: str, generation_id: str, prompt: str) -> str:
+        # Mock generation for now
+        # In future: list objects from s3_key prefix to get all samples
+        return f"""AGREEMENT
+
+This Agreement is made on {{current_date}} between {{client_name}} ("Client") and {{opposing_party}} ("Contractor").
+
+1. SERVICES
+Contractor agrees to provide the following services: {prompt}
+
+2. AI GENERATED
+This content was generated based on samples associated with generation ID: {generation_id}.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement.
+
+________________________
+{{client_name}}
+"""
