@@ -57,25 +57,46 @@ def template_architect_agent(state: LegalWorkflowState):
     MAX_TOTAL_CHARS = 60000 
     current_chars = 0
     
-    user_message = "Analyze these samples:\n\n"
+    samples_block = "Analyze these samples:\n\n"
     for i, doc in enumerate(state["sample_docs"], 1):
-        if len(doc) > 20000:
-            doc = doc[:20000] + "...[TRUNCATED]"
-            
         if current_chars + len(doc) > MAX_TOTAL_CHARS:
-            user_message += f"SAMPLE {i}:\n{doc[:MAX_TOTAL_CHARS - current_chars]}...[TRUNCATED DUE TO SIZE LIMIT]\n\n"
+            samples_block += f"SAMPLE {i}:\n{doc[:MAX_TOTAL_CHARS - current_chars]}...[TRUNCATED DUE TO SIZE LIMIT]\n\n"
             break
-            
-        user_message += f"SAMPLE {i}:\n{doc}\n\n"
+        samples_block += f"SAMPLE {i}:\n{doc}\n\n"
         current_chars += len(doc)
-        
-    if state.get("attorney_feedback"):
-        user_message += f"\n\nCRITICAL FEEDBACK FROM ATTORNEY (REVISION REQUIRED):\n{state['attorney_feedback']}\n\nPlease revise the template. \nIMPORTANT: Output the response in XML format:\n<summary>\nA brief, friendly summary of what you changed (max 2 sentences).\n</summary>\n<template>\nThe full revised template markdown content.\n</template>"
-    
+
     messages = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=user_message)
+        {
+            "role": "system",
+            "content": [
+                {
+                    "type": "text",
+                    "text": system_prompt,
+                    "cache_control": {"type": "ephemeral"}
+                }
+            ]
+        }
     ]
+
+    user_content = [
+        {
+            "type": "text",
+            "text": samples_block,
+            "cache_control": {"type": "ephemeral"}
+        }
+    ]
+
+    if state.get("attorney_feedback"):
+        feedback_msg = f"\n\nCRITICAL FEEDBACK FROM ATTORNEY (REVISION REQUIRED):\n{state['attorney_feedback']}\n\nPlease revise the template. \nIMPORTANT: Output the response in XML format:\n<summary>\nA brief, friendly summary of what you changed (max 2 sentences).\n</summary>\n<template>\nThe full revised template markdown content.\n</template>"
+        user_content.append({
+            "type": "text",
+            "text": feedback_msg
+        })
+    
+    messages.append({
+        "role": "user",
+        "content": user_content
+    })
     
     llm = get_llm()
     if not llm:
