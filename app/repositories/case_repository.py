@@ -11,9 +11,10 @@ class CaseRepository(BaseRepository):
         super().__init__(settings.DYNAMODB_TABLE_CASES)
 
     def get_all_for_client(self, company_id: str, client_id: str) -> List[dict]:
-        pk = f"{company_id}#{client_id}"
-        response = self.table.query(
-            KeyConditionExpression=Key("companyId#clientId").eq(pk)
+        # Using Scan with filter to ensure consistency with get_all_for_company
+        # and to bypass potential PK issues (since get_all_for_company works)
+        response = self.table.scan(
+            FilterExpression=Attr("companyId").eq(company_id) & Attr("clientId").eq(client_id)
         )
         return response.get("Items", [])
 
