@@ -6,17 +6,17 @@ from app.agents.state import LegalWorkflowState
 from app.core.config import settings
 import os
 
-# Initialize Claude
-# Ensure ANTHROPIC_API_KEY is set in your environment or .env
-if not settings.ANTHROPIC_API_KEY:
-    print("⚠️ WARNING: ANTHROPIC_API_KEY not found in settings. Agent may fail.")
-    
-    
-llm = ChatAnthropic(
-    model="claude-sonnet-4-20250514", 
-    temperature=0.2,
-    api_key=settings.ANTHROPIC_API_KEY
-)
+# Helper to get LLM client lazily
+def get_llm():
+    if not settings.ANTHROPIC_API_KEY:
+        print("⚠️ WARNING: ANTHROPIC_API_KEY not found. Agent will fail unless in simulation mode.")
+        return None
+        
+    return ChatAnthropic(
+        model="claude-sonnet-4-20250514", 
+        temperature=0.2,
+        api_key=settings.ANTHROPIC_API_KEY
+    )
 
 def load_system_prompt():
     prompt_path = os.path.join(os.path.dirname(__file__), "../../agent-prompts/system_prompts/template_architect.md")
@@ -77,6 +77,15 @@ def template_architect_agent(state: LegalWorkflowState):
         HumanMessage(content=user_message)
     ]
     
+    llm = get_llm()
+    if not llm:
+        return {
+            "template": "# ERROR: Missing API Key\n\nPlease set ANTHROPIC_API_KEY in backend .env to generate real templates.",
+            "status": "awaiting_attorney_review",
+            "current_step": "human_review",
+            "revision_summary": "Failed: API Key missing."
+        }
+
     response = llm.invoke(messages)
     content = response.content
     
