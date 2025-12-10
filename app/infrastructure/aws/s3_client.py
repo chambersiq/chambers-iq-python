@@ -39,4 +39,12 @@ class S3Client:
             print(f"Error deleting file from S3: {e}")
             return False
 
+    def get_file_content(self, object_name: str) -> bytes:
+        try:
+            response = self.client.get_object(Bucket=settings.S3_BUCKET_NAME, Key=object_name)
+            return response['Body'].read()
+        except ClientError as e:
+            print(f"Error reading file from S3: {e}")
+            return None
+
 s3_client = S3Client()

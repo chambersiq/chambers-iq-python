@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from typing import List, Dict, Any
 from app.services.core.document_service import DocumentService
 from app.api.v1.schemas.document import Document, DocumentCreate
@@ -46,4 +46,43 @@ def delete_document(
     success = service.delete_document(document_id)
     if not success:
         raise HTTPException(status_code=404, detail="Document not found")
-    return None
+@router.post("/documents/{document_id}/uploaded")
+def confirm_upload(
+    document_id: str,
+    background_tasks: BackgroundTasks,
+    service: DocumentService = Depends(get_document_service)
+):
+    doc = service.get_document("ignored", document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    if doc.aiStatus == "queued":
+        # Update to processing immediately so UI knows
+        # service.repo.update(doc.caseId, document_id, {"aiStatus": "processing"}) 
+        # Actually analyze_document will do it or we let it happen. 
+        # analyze_document doesn't verify status, it just runs.
+        background_tasks.add_task(service.analyze_document, document_id)
+        return {"status": "processing_queued"}
+        
+    return {"status": "ok"}
+
+@router.post("/documents/{document_id}/analyze")
+def trigger_analysis(
+    document_id: str,
+    background_tasks: BackgroundTasks,
+    service: DocumentService = Depends(get_document_service)
+):
+    doc = service.get_document("ignored", document_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    # Update status immediately to give UI feedback (optimistic)
+    # But service.analyze_document runs in background. 
+    # Let's trust the background task to update it or we update it to 'processing' here?
+    # Updating here is safer for UI responsiveness.
+    # We need to import datetime if we use it, or just pass simple partial update
+    # But repo.update expects dict.
+    # Let's just run the task. UI can poll.
+    
+    background_tasks.add_task(service.analyze_document, document_id)
+    return {"status": "processing_started"}

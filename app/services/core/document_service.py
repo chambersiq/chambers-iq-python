@@ -32,8 +32,9 @@ class DocumentService:
             "companyId": company_id,
             "documentId": doc_id,
             "s3Key": s3_key,
+            "s3Key": s3_key,
             "url": "", # Placeholder, will be generated on get or set to s3 path
-            "aiStatus": "pending",
+            "aiStatus": "queued" if data.generateSummary else "pending",
             "createdAt": now,
             "updatedAt": now
         })
@@ -81,3 +82,75 @@ class DocumentService:
         # Let's verify DocumentRepository.
         self.repo.delete(doc.caseId, document_id)
         return True
+
+    def analyze_document(self, document_id: str, client_position: str = "Unknown") -> bool:
+        doc = self.get_document("ignored", document_id)
+        if not doc or not doc.s3Key:
+            return False
+            
+        # 1. Fetch File
+        file_content = self.s3.get_file_content(doc.s3Key)
+        if not file_content:
+            return False
+            
+        # 2. Extract Text
+        text = ""
+        try:
+            if doc.name.lower().endswith(".pdf"):
+                import io
+                from pypdf import PdfReader
+                reader = PdfReader(io.BytesIO(file_content))
+                for page in reader.pages:
+                    text += page.extract_text() + "\n"
+            else:
+                # Assume text/plain or similar
+                text = file_content.decode("utf-8", errors="ignore")
+        except Exception as e:
+            print(f"Extraction Error: {e}")
+            self.repo.update(doc.caseId, document_id, {
+                "aiStatus": "failed", 
+                "aiSummary": f"Failed to extract text: {str(e)}"
+            })
+            return False
+
+        if not text.strip():
+             self.repo.update(doc.caseId, document_id, {
+                "aiStatus": "failed", 
+                "aiSummary": "Empty document text"
+            })
+             return False
+
+        # 3. Run Agent
+        try:
+            from app.agents.document_summarizer import doc_analysis_app
+            inputs = {
+                "document_text": text,
+                "client_position": client_position,
+                "is_bundle": False
+            }
+            result = doc_analysis_app.invoke(inputs)
+            
+            # 4. Save Results
+            updates = {
+                "aiStatus": "completed",
+                "aiSummary": result.get("final_advice", "")[:5000], 
+                "description": result.get("final_advice", "")[:5000], # Overwrite user description with AI summary
+                "extractedData": {
+                    "category": result.get("category"),
+                    "docType": result.get("doc_type"),
+                    "scanQuality": result.get("scan_quality"),
+                    "specialistAnalysis": result.get("specialist_analysis"),
+                    "finalAdvice": result.get("final_advice"),
+                    "isBundle": result.get("is_bundle")
+                }
+            }
+            self.repo.update(doc.caseId, document_id, updates)
+            return True
+            
+        except Exception as e:
+            print(f"Agent Error: {e}")
+            self.repo.update(doc.caseId, document_id, {
+                "aiStatus": "failed", 
+                "aiSummary": f"AI Error: {str(e)}"
+            })
+            return False

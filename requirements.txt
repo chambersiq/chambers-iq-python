@@ -13,3 +13,4 @@ langgraph>=0.0.26
 langchain-anthropic>=0.1.4
 langchain-core>=0.1.30
 anthropic>=0.18.1
+pypdf>=4.0.0

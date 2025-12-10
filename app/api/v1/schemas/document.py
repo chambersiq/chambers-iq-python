@@ -13,7 +13,7 @@ class DocumentBase(BaseModel):
     archived: bool = False
 
 class DocumentCreate(DocumentBase):
-    pass
+    generateSummary: bool = False
 
 class Document(DocumentBase):
     companyId: str
@@ -30,3 +30,4 @@ class Document(DocumentBase):
     uploadedBy: Optional[str] = None
     createdAt: str
     updatedAt: str
+
