@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     
     # AI Services
     BEDROCK_MODEL_ID: str = "anthropic.claude-3-sonnet-20240229-v1:0"
+    ANTHROPIC_API_KEY: Optional[str] = None
     
     # API Configuration
     API_V1_STR: str = "/api/v1"

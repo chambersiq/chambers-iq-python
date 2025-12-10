@@ -59,3 +59,77 @@ def generate_template(
 ):
     content = service.generate_template_from_samples(company_id, request.generationId, request.prompt)
     return {"content": content}
+
+from app.agents.template_architect import agent_app
+from app.api.v1.schemas.template import WorkflowStartRequest, WorkflowReviewRequest
+import uuid
+
+@router.post("/ai/workflow/start")
+def start_workflow(
+    request: WorkflowStartRequest,
+    service: TemplateService = Depends(get_template_service)
+):
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+    
+    initial_state = {
+        "sample_docs": request.sampleDocs,
+        "template_approved": False,
+        "status": "analyzing_samples",
+        "current_step": "template_architect",
+        "is_simulation": request.is_simulation or False
+    }
+    
+    # Start the workflow
+    # Use invoke mostly, but stream could be better for long running. 
+    # For now we invoke to get to the first checkpoint.
+    result = agent_app.invoke(initial_state, config)
+    
+    return {
+        "threadId": thread_id,
+        "status": result.get("status"),
+        "currentStep": result.get("current_step"),
+        "template": result.get("template")
+    }
+
+@router.get("/ai/workflow/{thread_id}")
+def get_workflow_status(thread_id: str):
+    config = {"configurable": {"thread_id": thread_id}}
+    state = agent_app.get_state(config)
+    
+    if not state.values:
+         raise HTTPException(status_code=404, detail="Workflow not found")
+         
+    return {
+        "threadId": thread_id,
+        "status": state.values.get("status"),
+        "currentStep": state.values.get("current_step"),
+        "template": state.values.get("template"),
+        "template": state.values.get("template"),
+        "attorneyFeedback": state.values.get("attorney_feedback"),
+        "revisionSummary": state.values.get("revision_summary")
+    }
+
+@router.post("/ai/workflow/{thread_id}/review")
+def review_workflow(
+    thread_id: str,
+    review: WorkflowReviewRequest
+):
+    config = {"configurable": {"thread_id": thread_id}}
+    
+    # Update state with approval
+    agent_app.update_state(config, {
+        "template_approved": review.approved,
+        "attorney_feedback": review.feedback
+    })
+    
+    # Resume workflow
+    # We pass None as input because we just updated state
+    result = agent_app.invoke(None, config)
+    
+    return {
+        "threadId": thread_id,
+        "status": result.get("status"),
+        "currentStep": result.get("current_step"),
+        "finalDocument": result.get("final_document")
+    }

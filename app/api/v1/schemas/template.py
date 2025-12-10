@@ -30,3 +30,12 @@ class TemplateGenerationRequest(BaseModel):
     generationId: str
     prompt: str
 
+
+class WorkflowStartRequest(BaseModel):
+    sampleDocs: List[str]
+    companyId: str
+    is_simulation: Optional[bool] = False
+
+class WorkflowReviewRequest(BaseModel):
+    approved: bool
+    feedback: Optional[str] = None
