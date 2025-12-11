@@ -2,11 +2,49 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 from app.repositories.draft_repository import DraftRepository
+from app.repositories.case_repository import CaseRepository
+from app.repositories.client_repository import ClientRepository
+from app.repositories.template_repository import TemplateRepository
 from app.api.v1.schemas.draft import Draft, DraftCreate, DraftUpdate
 
 class DraftService:
     def __init__(self):
         self.repo = DraftRepository()
+        self.case_repo = CaseRepository()
+        self.client_repo = ClientRepository()
+        self.template_repo = TemplateRepository()
+
+    def _enrich_draft_context(self, draft: Draft) -> Draft:
+        # Fetch Case Name
+        if draft.caseId:
+             # CaseRepo.get_by_id_scan or global? Draft has companyId.
+             # Ideally get_by_id(company, client?, case) but we often don't have clientId handy here easily unless we look it up.
+             # But Draft HAS clientId.
+             case = self.case_repo.get_by_id(draft.companyId, draft.clientId, draft.caseId)
+             if case:
+                 draft.caseName = case.get('caseName') or case.get('caseNumber')
+        
+        # Fetch Client Name
+        if draft.clientId:
+            client = self.client_repo.get_by_id(draft.companyId, draft.clientId)
+            if client:
+                data = client.get('data', {})
+                c_type = data.get('clientType')
+                if c_type == 'individual':
+                    draft.clientName = data.get('fullName')
+                elif c_type == 'company':
+                    draft.clientName = data.get('companyName')
+
+        # Fetch Template Name & Document Type (if not set)
+        if draft.templateId:
+            template = self.template_repo.get_by_id_global(draft.templateId)
+            if template:
+                draft.templateName = template.get('name')
+                # If documentType is generic, try to infer from template category
+                if draft.documentType == "General" and template.get('category'):
+                    draft.documentType = template.get('category')
+        
+        return draft
 
     def create_draft(self, company_id: str, data: DraftCreate) -> Draft:
         draft_id = str(uuid.uuid4())
@@ -21,8 +59,7 @@ class DraftService:
         })
         
         self.repo.create(draft_dict)
-        self.repo.create(draft_dict)
-        return Draft(**draft_dict)
+        return self._enrich_draft_context(Draft(**draft_dict))
 
     def update_draft(self, company_id: str, draft_id: str, data: 'DraftUpdate') -> Optional[Draft]:
         # Need caseId for PK
@@ -41,12 +78,14 @@ class DraftService:
 
     def get_drafts(self, company_id: str, case_id: str) -> List[Draft]:
         items = self.repo.get_all_for_case(company_id, case_id)
-        return [Draft(**item) for item in items]
+        return [self._enrich_draft_context(Draft(**item)) for item in items]
 
     def get_all_drafts(self, company_id: str) -> List[Draft]:
         items = self.repo.get_all_for_company(company_id)
-        return [Draft(**item) for item in items]
+        return [self._enrich_draft_context(Draft(**item)) for item in items]
 
     def get_draft(self, company_id: str, draft_id: str) -> Optional[Draft]:
         item = self.repo.get_by_id_global(draft_id)
-        return Draft(**item) if item else None
+        if item:
+            return self._enrich_draft_context(Draft(**item))
+        return None

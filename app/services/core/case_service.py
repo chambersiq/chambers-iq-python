@@ -86,9 +86,7 @@ class CaseService:
         attributes = self.repo.update(company_id, client_id, case_id, updates)
         return self._populate_client_name(Case(**attributes))
 
-    def get_case_by_id(self, company_id: str, case_id: str) -> Optional[Case]:
-        item = self.repo.get_by_id_scan(company_id, case_id)
-        return self._populate_client_name(Case(**item)) if item else None
+
 
     def delete_case(self, company_id: str, client_id: str, case_id: str) -> None:
         self.repo.delete(company_id, client_id, case_id)
@@ -131,10 +129,4 @@ class CaseService:
     def delete_case_by_id(self, company_id: str, case_id: str) -> None:
         self.repo.delete(company_id, "", case_id)
 
-    # Deprecated / Legacy Support Helper (if needed)
-    def get_case_by_id_only(self, case_id: str) -> Optional[Case]:
-        # This was for global lookup. We should discourage this.
-        # But if used internally, we might need a Global Scan or GSI.
-        # For now, return None or error if we want to enforce scoping.
-        # Let's return None to force fixing call sites.
-        return None
+

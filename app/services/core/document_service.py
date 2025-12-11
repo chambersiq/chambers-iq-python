@@ -117,7 +117,7 @@ class DocumentService:
 
         # 3. Run Agent
         try:
-            from app.agents.document_summarizer import doc_analysis_app
+            from app.agents.workflows.summarization.document_summarizer import doc_analysis_app
             inputs = {
                 "document_text": text,
                 "client_position": client_position,

@@ -7,9 +7,10 @@ class DraftBase(BaseModel):
     caseId: str
     clientId: str
     status: str = "draft"
-    status: str = "draft"
     content: str
     archived: bool = False
+    templateId: Optional[str] = None
+    documentType: Optional[str] = "General"
 
 class DraftCreate(DraftBase):
     pass
@@ -21,6 +22,8 @@ class DraftUpdate(BaseModel):
     archived: Optional[bool] = None
     caseId: Optional[str] = None # Should not change ideally but allowed
     clientId: Optional[str] = None
+    templateId: Optional[str] = None
+    documentType: Optional[str] = None
 
 
 class Draft(DraftBase):
@@ -28,5 +31,6 @@ class Draft(DraftBase):
     draftId: str
     caseName: Optional[str] = None # Denormalized
     clientName: Optional[str] = None # Denormalized
+    templateName: Optional[str] = None # Denormalized
     lastEditedAt: str
     createdAt: str

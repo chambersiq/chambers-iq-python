@@ -90,11 +90,25 @@ class CaseRepository(BaseRepository):
         # We can scan filtering by caseId (still slow but Global needs might be rare)
         # OR add a GSI for global lookups if needed.
         # For now, keep Scan.
-        response = self.table.scan(
-            FilterExpression=Key("caseId").eq(case_id)
-        )
-        items = response.get("Items", [])
-        return items[0] if items else None
+        # Scan with pagination to ensure we find the item even if it's not on the first page.
+        done = False
+        start_key = None
+        while not done:
+            kwargs = {
+                'FilterExpression': Attr("caseId").eq(case_id)
+            }
+            if start_key:
+                kwargs['ExclusiveStartKey'] = start_key
+                
+            response = self.table.scan(**kwargs)
+            items = response.get("Items", [])
+            if items:
+                return items[0]
+            
+            start_key = response.get('LastEvaluatedKey')
+            if not start_key:
+                done = True
+        return None
     
     def get_all_by_client_global(self, client_id: str) -> List[dict]:
         # Use GSI 'by_client'

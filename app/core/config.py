@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     # AI Services
     BEDROCK_MODEL_ID: str = "anthropic.claude-3-sonnet-20240229-v1:0"
     ANTHROPIC_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+
+    # LLM Selection
+    LLM_PROVIDER: str = "anthropic" # Options: "anthropic", "openai"
+    LLM_MODEL: str = "claude-3-haiku-20240307" # Fallback to Haiku if Sonnet unavaiable (404)
+
+
+    # External APIs
+    INDIAN_KANOON_API_TOKEN: Optional[str] = None
     
     # API Configuration
     API_V1_STR: str = "/api/v1"

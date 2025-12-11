@@ -60,7 +60,7 @@ def generate_template(
     content = service.generate_template_from_samples(company_id, request.generationId, request.prompt)
     return {"content": content}
 
-from app.agents.template_architect import agent_app
+from app.agents.workflows.templates.template_architect import agent_app
 from app.api.v1.schemas.template import WorkflowStartRequest, WorkflowReviewRequest
 import uuid
 

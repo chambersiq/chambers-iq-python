@@ -29,7 +29,7 @@ def get_llm():
     )
 
 def load_prompt(filename: str) -> str:
-    path = os.path.join(os.path.dirname(__file__), f"../../agent-prompts/system_prompts/document_summarizer/{filename}.md")
+    path = os.path.join(os.path.dirname(__file__), f"../../prompts/system_prompts/document_summarizer/{filename}.md")
     try:
         with open(path, "r") as f:
             return f.read()

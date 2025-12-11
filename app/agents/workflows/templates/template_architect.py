@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
-from app.agents.state import LegalWorkflowState
+from app.agents.workflows.templates.state import LegalWorkflowState
 from app.core.config import settings
 import os
 
@@ -19,7 +19,7 @@ def get_llm():
     )
 
 def load_system_prompt():
-    prompt_path = os.path.join(os.path.dirname(__file__), "../../agent-prompts/system_prompts/template_architect.md")
+    prompt_path = os.path.join(os.path.dirname(__file__), "../../prompts/system_prompts/templates/template_architect.md")
     try:
         with open(prompt_path, "r") as f:
             return f.read()
@@ -54,16 +54,69 @@ def template_architect_agent(state: LegalWorkflowState):
     
     system_prompt = load_system_prompt()
     
-    MAX_TOTAL_CHARS = 60000 
+    
+    from app.infrastructure.aws.s3_client import S3Client
+    from app.core.config import settings
+    import io
+    
+    # Initialize S3 Client
+    s3 = S3Client()
+    
+    MAX_TOTAL_CHARS = 100000 
     current_chars = 0
     
-    samples_block = "Analyze these samples:\n\n"
-    for i, doc in enumerate(state["sample_docs"], 1):
-        if current_chars + len(doc) > MAX_TOTAL_CHARS:
-            samples_block += f"SAMPLE {i}:\n{doc[:MAX_TOTAL_CHARS - current_chars]}...[TRUNCATED DUE TO SIZE LIMIT]\n\n"
+    samples_block = "Analyze these uploaded sample documents:\n\n"
+    
+    for i, s3_key in enumerate(state["sample_docs"], 1):
+        print(f"  📥 Processing Sample {i}: {s3_key}")
+        
+        filename = s3_key.split('/')[-1].lower()
+        text = ""
+
+        try:
+            # 1. Download from S3
+            response = s3.client.get_object(Bucket=settings.S3_BUCKET_NAME, Key=s3_key)
+            file_content = response['Body'].read()
+            
+            # 2. Extract Text based on extension
+            
+            if filename.endswith(".pdf"):
+                try:
+                    from pypdf import PdfReader
+                    reader = PdfReader(io.BytesIO(file_content))
+                    for page in reader.pages:
+                        extracted = page.extract_text()
+                        if extracted:
+                            text += extracted + "\n"
+                    print(f"    ✓ Extracted {len(text)} chars from PDF")
+                except ImportError:
+                    print("    ❌ pypdf not installed, cannot read PDF")
+                    text = "[Error: pypdf not installed]"
+            else:
+                # Assume text
+                text = file_content.decode('utf-8', errors='ignore')
+                print(f"    ✓ Extracted {len(text)} chars from Text file")
+
+            if not text.strip():
+                 print("    ⚠️ Warning: Extracted text is empty")
+                 text = "[Empty Document]"
+
+        except Exception as e:
+            print(f"    ❌ Error reading file {s3_key}: {e}")
+            text = f"[Error reading file: {str(e)}]"
+
+        # 3. Append to block
+        header = f"--- DOCUMENT {i}: {filename} ---\n"
+        if current_chars + len(text) > MAX_TOTAL_CHARS:
+            valid_len = MAX_TOTAL_CHARS - current_chars
+            samples_block += f"{header}{text[:valid_len]}...[TRUNCATED]\n\n"
+            print(f"    ⚠️ Truncated output (limit reached)")
             break
-        samples_block += f"SAMPLE {i}:\n{doc}\n\n"
-        current_chars += len(doc)
+        
+        samples_block += f"{header}{text}\n\n"
+        current_chars += len(text) + len(header)
+    
+    print(f"  Note: Total context size: {current_chars} chars")
 
     messages = [
         {
