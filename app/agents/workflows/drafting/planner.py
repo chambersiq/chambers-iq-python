@@ -14,13 +14,16 @@ import os
 
 class DraftMasterPlanner:
     def __init__(self, llm=None):
-        # Use cached LLM with Anthropic prompt caching enabled
-        # Use cached LLM with configured provider
-        from app.core.config import settings
-        self.llm = llm or create_cached_llm(
-            model=settings.LLM_MODEL,
-            provider=settings.LLM_PROVIDER
-        )
+        self.llm = llm  # Lazy init
+        self.system_prompt = load_drafting_prompt("planner")
+
+    async def _get_llm(self):
+        if not self.llm:
+            from app.agents.workflows.drafting.llm_utils import create_cached_llm
+            self.llm = create_cached_llm(
+                temperature=0.4
+            )
+        return self.llm
 
     async def create_plan(self, state: DraftState) -> dict:
         """
