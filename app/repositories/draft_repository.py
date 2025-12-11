@@ -31,7 +31,7 @@ class DraftRepository(BaseRepository):
         self.save(item)
         return item
 
-    def update(self, company_id: str, draft_id: str, updates: dict) -> dict:
+    def update(self, case_id: str, draft_id: str, updates: dict) -> dict:
         update_expr = "SET "
         expr_attr_names = {}
         expr_attr_values = {}
@@ -46,7 +46,7 @@ class DraftRepository(BaseRepository):
         update_expr = update_expr.rstrip(", ")
         
         response = self.table.update_item(
-            Key={"companyId": company_id, "draftId": draft_id},
+            Key={"caseId": case_id, "draftId": draft_id},
             UpdateExpression=update_expr,
             ExpressionAttributeNames=expr_attr_names,
             ExpressionAttributeValues=expr_attr_values,

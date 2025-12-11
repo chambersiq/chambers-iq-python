@@ -14,6 +14,15 @@ class DraftBase(BaseModel):
 class DraftCreate(DraftBase):
     pass
 
+class DraftUpdate(BaseModel):
+    name: Optional[str] = None
+    content: Optional[str] = None
+    status: Optional[str] = None
+    archived: Optional[bool] = None
+    caseId: Optional[str] = None # Should not change ideally but allowed
+    clientId: Optional[str] = None
+
+
 class Draft(DraftBase):
     companyId: str
     draftId: str
