@@ -9,13 +9,7 @@ async def verify_company_access(
     Verifies that the requested company_id matches the authenticated user's company_id
     passed via X-Company-Id header (injected by Frontend Trusted Client).
     """
-    # For now, if header is missing, we might want to allow it strictly for debugging 
-    # OR reject it. Let's reject to be secure by default.
-    # Exception: If running locally without frontend?
-    
     if not x_company_id:
-        # Check if we are in strict mode? 
-        # For this refactor, let's enforce it. Use curl with -H "X-Company-Id: ..."
         raise HTTPException(
             status_code=401, 
             detail="Missing Authentication Context (X-Company-Id header required)"
@@ -27,4 +21,24 @@ async def verify_company_access(
             detail=f"Access Denied: You do not have access to company {company_id}"
         )
     
+    return x_company_id
+
+async def get_current_user_email(
+    x_user_email: Optional[str] = Header(None, alias="X-User-Email")
+) -> str:
+    """
+    Extracts User Email from the trusted header.
+    """
+    if not x_user_email:
+        raise HTTPException(status_code=401, detail="Missing X-User-Email header")
+    return x_user_email
+
+async def get_current_company_id(
+    x_company_id: Optional[str] = Header(None, alias="X-Company-Id")
+) -> str:
+    """
+    Extracts Company ID from the trusted header.
+    """
+    if not x_company_id:
+        raise HTTPException(status_code=401, detail="Missing X-Company-Id header")
     return x_company_id
