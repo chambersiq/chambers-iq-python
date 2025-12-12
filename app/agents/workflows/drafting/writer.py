@@ -10,6 +10,7 @@ import uuid
 import re
 import os
 from typing import Dict, List, Any
+from functools import lru_cache
 
 class DraftWriter:
     def __init__(self, llm=None):
@@ -222,7 +223,10 @@ def load_drafting_prompt(filename: str) -> str:
     except FileNotFoundError:
         return "You are an expert legal assistant."
 
-writer_agent = DraftWriter()
+@lru_cache
+def get_writer_agent():
+    return DraftWriter()
 
 async def writer_node(state: DraftState):
-    return await writer_agent.write_section(state)
+    agent = get_writer_agent()
+    return await agent.write_section(state)
