@@ -1,7 +1,7 @@
 from app.agents.workflows.drafting.state import DraftState
 from app.agents.workflows.drafting.schema import DraftedSection, SectionStatus, Citation
 from app.agents.workflows.drafting.context_manager import context_manager
-from app.agents.workflows.drafting.citation_agent import citation_agent
+from app.agents.workflows.drafting.citation_agent import get_citation_agent
 from app.agents.workflows.drafting.llm_utils import (
     create_cached_llm,
     create_cached_messages_with_context

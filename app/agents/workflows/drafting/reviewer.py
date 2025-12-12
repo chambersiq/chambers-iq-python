@@ -9,6 +9,7 @@ import os
 import json
 from datetime import datetime
 from typing import List, Dict, Any
+from functools import lru_cache
 
 class DraftReviewer:
     def __init__(self, llm=None):
@@ -425,7 +426,10 @@ def load_drafting_prompt(filename: str) -> str:
     except FileNotFoundError:
         return "You are an expert legal assistant."
 
-reviewer_agent = DraftReviewer()
+@lru_cache
+def get_reviewer_agent():
+    return DraftReviewer()
 
 async def reviewer_node(state: DraftState):
-    return await reviewer_agent.review_section(state)
+    agent = get_reviewer_agent()
+    return await agent.review_section(state)

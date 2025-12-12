@@ -4,6 +4,7 @@ from app.agents.workflows.drafting.llm_utils import create_cached_llm
 from langchain_core.messages import SystemMessage, HumanMessage
 import json
 import re
+from functools import lru_cache
 
 class FeedbackProcessor:
     def __init__(self):
@@ -115,7 +116,10 @@ Extract facts:"""
 
         return {}
 
-feedback_processor = FeedbackProcessor()
+@lru_cache
+def get_feedback_processor():
+    return FeedbackProcessor()
 
 async def feedback_processor_node(state: DraftState):
-    return await feedback_processor.process_feedback(state)
+    processor = get_feedback_processor()
+    return await processor.process_feedback(state)

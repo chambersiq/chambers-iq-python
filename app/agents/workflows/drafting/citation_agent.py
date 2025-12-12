@@ -4,6 +4,7 @@ from langchain_openai import ChatOpenAI
 from app.agents.workflows.drafting.state import DraftState
 from app.agents.tools.indian_kanoon_tools import citation_tools
 from typing import Dict, Any
+from functools import lru_cache
 
 class DraftCitationAgent:
     def __init__(self):
@@ -58,7 +59,9 @@ def load_drafting_prompt(filename: str) -> str:
         return "You are an expert legal assistant."
 
 # Wrapper
-citation_agent = DraftCitationAgent()
+@lru_cache
+def get_citation_agent():
+    return DraftCitationAgent()
 
 # Note: In the final graph, this might be a subgraph or a tool-calling node.
 # For now, we define the class structure.

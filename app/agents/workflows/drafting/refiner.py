@@ -4,6 +4,7 @@ from app.agents.workflows.drafting.llm_utils import (
     create_cached_messages_with_context
 )
 from typing import Dict, Any
+from functools import lru_cache
 import json
 
 from app.core.config import settings
@@ -209,7 +210,10 @@ def load_drafting_prompt(filename: str) -> str:
     except FileNotFoundError:
         return "You are an expert legal assistant."
 
-refiner_agent = DraftRefiner()  # Will use default cached LLM
+@lru_cache
+def get_refiner_agent():
+    return DraftRefiner()  # Will use default cached LLM
 
 async def refiner_node(state: DraftState):
-    return await refiner_agent.refine_plan(state)
+    agent = get_refiner_agent()
+    return await agent.refine_plan(state)
