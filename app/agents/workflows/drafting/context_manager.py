@@ -12,6 +12,7 @@ import json
 from app.services.core.case_service import CaseService
 from app.services.core.document_service import DocumentService
 from app.services.core.template_service import TemplateService
+from app.services.core.draft_service import DraftService
 from app.agents.workflows.drafting.cache import cache_content
 
 # Right after imports
@@ -109,13 +110,27 @@ class DraftContextManager:
                 # Ensure description is available
                 template_description = template_data.get("description", "")
         
+        # Load Draft (to get userInstructions)
+        draft_service = DraftService()
+        draft_data = None
+        user_instructions = ""
+        draft_id = state.get("draft_id")
+        
+        if draft_id:
+            draft = draft_service.get_draft(company_id, draft_id)
+            if draft:
+                draft_data = draft.model_dump()
+                user_instructions = draft.userInstructions or ""
+                print(f"  Loaded draft: {draft.draftName} (Instructions len: {len(user_instructions)})")
+
         return {
             "case_data": case_data,
             "documents": documents_data,
             "template_content": template_content,
             "template_data": template_data,
             "template_description": template_description if template_id else "",
-            "case_type": case_data.get("caseType", "unknown")
+            "case_type": case_data.get("caseTypeId", "unknown"),
+            "user_instructions": user_instructions
         }
 
     async def _extract_facts_and_summaries(self, state: DraftState) -> dict:
@@ -147,7 +162,7 @@ class DraftContextManager:
                 'prayer': 'prayer',
                 'judgeName': 'judge_name',
                 'filingDate': 'filing_date',
-                'caseType': 'case_type'
+                'caseTypeId': 'case_type'
             }
             
             for field, fact_key in field_mappings.items():
@@ -302,7 +317,8 @@ class DraftContextManager:
             "client_position": case_data.get("clientPosition", ""),
             "key_facts": case_data.get("keyFacts", []),
             "prayer": case_data.get("prayer", ""),
-            "case_type": case_data.get("caseType", state.get("case_type", ""))
+            "case_type": case_data.get("caseTypeId", state.get("case_type", "")),
+            "user_instructions": state.get("user_instructions", "")
         }
 
         return {

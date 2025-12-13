@@ -11,6 +11,13 @@ class DocumentBase(BaseModel):
     description: Optional[str] = None
     tags: Optional[List[str]] = []
     archived: bool = False
+    
+    # Phase 2: Categorization
+    documentTypeId: Optional[str] = None
+    documentCategoryId: Optional[str] = None
+    courtLevelId: Optional[str] = None
+    status: Optional[str] = None # from master data
+    parentCaseTypeId: Optional[str] = None
 
 class DocumentCreate(DocumentBase):
     generateSummary: bool = False

@@ -123,3 +123,12 @@ from langgraph.checkpoint.memory import MemorySaver
 
 memory = MemorySaver()
 app = workflow.compile(checkpointer=memory)
+# Recursion limit is set at runtime invocation, but can be configured in Config/defaults.
+# Actually, LangGraph v0.2+ sets it in the graph config.
+# app = workflow.compile(checkpointer=memory, interrupt_before=[...])
+# The limit is passed in `invoke(config={"recursion_limit": 50})`
+# But we can't change the API call here easily.
+# Wait, the user error says: "You can increase the limit by setting the `recursion_limit` config key."
+# This is usually in the invocation.
+
+# Let's verify where `app.invoke` or `app.stream` is called. It's likely in `app/api/v1/endpoints/ai.py`.

@@ -112,4 +112,19 @@ class DocumentRepository(BaseRepository):
         )
         return response.get("Count", 0)
 
+    # Phase 2: Categorization Methods
+    def get_by_document_type(self, document_type_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_document_type',
+            KeyConditionExpression=Key("documentTypeId").eq(document_type_id)
+        )
+        return response.get("Items", [])
+
+    def get_by_category(self, category_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_category',
+            KeyConditionExpression=Key("documentCategoryId").eq(category_id)
+        )
+        return response.get("Items", [])
+
 

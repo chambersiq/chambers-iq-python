@@ -58,6 +58,9 @@ class DraftService:
             "createdAt": now
         })
         
+        # Remove keys with None values to avoid DynamoDB ValidationException (Type mismatch)
+        draft_dict = {k: v for k, v in draft_dict.items() if v is not None}
+
         self.repo.create(draft_dict)
         return self._enrich_draft_context(Draft(**draft_dict))
 

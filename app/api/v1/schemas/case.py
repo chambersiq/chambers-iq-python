@@ -4,7 +4,8 @@ from datetime import datetime
 
 class Party(BaseModel):
     name: str
-    type: Literal['individual', 'company']
+    type: str  # Updated to accept Master Data IDs (e.g., PT_01)
+    address: Optional[str] = None # Added field
     opposingCounselName: Optional[str] = None
     opposingCounselFirm: Optional[str] = None
     opposingCounselEmail: Optional[str] = None
@@ -29,19 +30,6 @@ class CaseStatus(str, Enum):
     CLOSED = "closed"
     ON_HOLD = "on-hold"
 
-class CaseType(str, Enum):
-    CIVIL_LITIGATION = "civil-litigation"
-    CRIMINAL_DEFENSE = "criminal-defense"
-    FAMILY_LAW = "family-law"
-    CORPORATE_LAW = "corporate-law"
-    REAL_ESTATE = "real-estate"
-    INTELLECTUAL_PROPERTY = "intellectual-property"
-    EMPLOYMENT = "employment"
-    IMMIGRATION = "immigration"
-    BANKRUPTCY = "bankruptcy"
-    ESTATE_PLANNING = "estate-planning"
-    TAX_LAW = "tax-law"
-    OTHER = "other"
 
 class CasePriority(str, Enum):
     LOW = "low"
@@ -60,7 +48,7 @@ class CaseBase(BaseModel):
     # Basic Info
     caseNumber: Optional[str] = None
     caseName: str
-    caseType: CaseType
+    # caseType removed
     caseSubType: Optional[str] = None
     status: CaseStatus = CaseStatus.ACTIVE
 
@@ -75,6 +63,14 @@ class CaseBase(BaseModel):
 
     # Case Details
     jurisdiction: Optional[str] = None
+    courtLevelId: Optional[str] = None # Added for Phase 2
+    caseTypeId: Optional[str] = None # Added for Phase 2
+    practiceArea: Optional[str] = None # Added for Phase 2
+    primaryStatuteId: Optional[str] = None # Added for Phase 2
+    limitationYears: Optional[int] = None # Added for Phase 2
+    allowedDocTypeIds: List[str] = [] # Added for Phase 2
+    reliefIds: List[str] = [] # Added for Phase 2
+    
     venue: Optional[str] = None
     courtName: Optional[str] = None
     department: Optional[str] = None
@@ -84,7 +80,7 @@ class CaseBase(BaseModel):
 
     # Parties
     opposingPartyName: Optional[str] = None
-    opposingPartyType: Optional[Literal['individual', 'company']] = None
+    opposingPartyType: Optional[str] = None # Changed from Literal to str to accept IDs
     opposingCounselName: Optional[str] = None
     opposingCounselFirm: Optional[str] = None
     opposingCounselEmail: Optional[str] = None

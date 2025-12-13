@@ -1,0 +1,1798 @@
+{
+  "seed_data_version": "2.0",
+  "jurisdiction": "India",
+  "description": "Comprehensive master data for Indian Law Firm Application - Expanded Version",
+  "master_data": {
+    "court_levels": [
+      {
+        "id": "CL_SC",
+        "name": "Supreme Court of India",
+        "short_code": "SC",
+        "hierarchy_level": 1
+      },
+      {
+        "id": "CL_HC",
+        "name": "High Court",
+        "short_code": "HC",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_DC",
+        "name": "District & Sessions Court",
+        "short_code": "DC",
+        "hierarchy_level": 3
+      },
+      {
+        "id": "CL_MM",
+        "name": "Chief Metropolitan Magistrate / MM",
+        "short_code": "MM",
+        "hierarchy_level": 4
+      },
+      {
+        "id": "CL_FAM",
+        "name": "Family Court",
+        "short_code": "FC",
+        "hierarchy_level": 3
+      },
+      {
+        "id": "CL_NCLT",
+        "name": "National Company Law Tribunal",
+        "short_code": "NCLT",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_NCLAT",
+        "name": "National Company Law Appellate Tribunal",
+        "short_code": "NCLAT",
+        "hierarchy_level": 1
+      },
+      {
+        "id": "CL_RERA",
+        "name": "RERA Authority / Tribunal",
+        "short_code": "RERA",
+        "hierarchy_level": 3
+      },
+      {
+        "id": "CL_CAT",
+        "name": "Central Administrative Tribunal",
+        "short_code": "CAT",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_DRT",
+        "name": "Debt Recovery Tribunal",
+        "short_code": "DRT",
+        "hierarchy_level": 3
+      },
+      {
+        "id": "CL_DRAT",
+        "name": "Debt Recovery Appellate Tribunal",
+        "short_code": "DRAT",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_CONS",
+        "name": "Consumer Disputes Redressal Forum",
+        "short_code": "CDRF",
+        "hierarchy_level": 4
+      },
+      {
+        "id": "CL_NCDRC",
+        "name": "National Consumer Disputes Redressal Commission",
+        "short_code": "NCDRC",
+        "hierarchy_level": 1
+      },
+      {
+        "id": "CL_LAB",
+        "name": "Labour Court",
+        "short_code": "LC",
+        "hierarchy_level": 3
+      },
+      {
+        "id": "CL_ITAT",
+        "name": "Income Tax Appellate Tribunal",
+        "short_code": "ITAT",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_CESTAT",
+        "name": "Customs, Excise & Service Tax Appellate Tribunal",
+        "short_code": "CESTAT",
+        "hierarchy_level": 2
+      },
+      {
+        "id": "CL_ARB",
+        "name": "Arbitration Tribunal",
+        "short_code": "ARB",
+        "hierarchy_level": 3
+      }
+    ],
+    "high_courts": [
+      {
+        "id": "HC_DEL",
+        "name": "Delhi High Court",
+        "state": "Delhi",
+        "bench_location": "New Delhi"
+      },
+      {
+        "id": "HC_BOM",
+        "name": "Bombay High Court",
+        "state": "Maharashtra",
+        "bench_location": "Mumbai"
+      },
+      {
+        "id": "HC_CAL",
+        "name": "Calcutta High Court",
+        "state": "West Bengal",
+        "bench_location": "Kolkata"
+      },
+      {
+        "id": "HC_MAD",
+        "name": "Madras High Court",
+        "state": "Tamil Nadu",
+        "bench_location": "Chennai"
+      },
+      {
+        "id": "HC_KAR",
+        "name": "Karnataka High Court",
+        "state": "Karnataka",
+        "bench_location": "Bengaluru"
+      },
+      {
+        "id": "HC_ALL",
+        "name": "Allahabad High Court",
+        "state": "Uttar Pradesh",
+        "bench_location": "Prayagraj"
+      },
+      {
+        "id": "HC_GUJ",
+        "name": "Gujarat High Court",
+        "state": "Gujarat",
+        "bench_location": "Ahmedabad"
+      },
+      {
+        "id": "HC_P&H",
+        "name": "Punjab & Haryana High Court",
+        "state": "Punjab/Haryana",
+        "bench_location": "Chandigarh"
+      },
+      {
+        "id": "HC_KER",
+        "name": "Kerala High Court",
+        "state": "Kerala",
+        "bench_location": "Ernakulam"
+      },
+      {
+        "id": "HC_RAJ",
+        "name": "Rajasthan High Court",
+        "state": "Rajasthan",
+        "bench_location": "Jodhpur"
+      }
+    ],
+    "case_stages": [
+      {
+        "id": "STG_01",
+        "name": "Pre-Filing / Draft Preparation",
+        "sequence": 1,
+        "is_active": true
+      },
+      {
+        "id": "STG_02",
+        "name": "Filing Pending",
+        "sequence": 2,
+        "is_active": true
+      },
+      {
+        "id": "STG_03",
+        "name": "Filed - Awaiting Number",
+        "sequence": 3,
+        "is_active": true
+      },
+      {
+        "id": "STG_04",
+        "name": "Numbered - Service Pending",
+        "sequence": 4,
+        "is_active": true
+      },
+      {
+        "id": "STG_05",
+        "name": "Service Complete - Reply Awaited",
+        "sequence": 5,
+        "is_active": true
+      },
+      {
+        "id": "STG_06",
+        "name": "Pleadings Complete",
+        "sequence": 6,
+        "is_active": true
+      },
+      {
+        "id": "STG_07",
+        "name": "Framing of Issues",
+        "sequence": 7,
+        "is_active": true
+      },
+      {
+        "id": "STG_08",
+        "name": "Evidence Stage - Plaintiff",
+        "sequence": 8,
+        "is_active": true
+      },
+      {
+        "id": "STG_09",
+        "name": "Evidence Stage - Defendant",
+        "sequence": 9,
+        "is_active": true
+      },
+      {
+        "id": "STG_10",
+        "name": "Arguments Stage",
+        "sequence": 10,
+        "is_active": true
+      },
+      {
+        "id": "STG_11",
+        "name": "Judgment Reserved",
+        "sequence": 11,
+        "is_active": true
+      },
+      {
+        "id": "STG_12",
+        "name": "Judgment Pronounced",
+        "sequence": 12,
+        "is_active": false
+      },
+      {
+        "id": "STG_13",
+        "name": "Disposed / Closed",
+        "sequence": 13,
+        "is_active": false
+      },
+      {
+        "id": "STG_14",
+        "name": "Appeal Filed",
+        "sequence": 14,
+        "is_active": false
+      }
+    ],
+    "hearing_types": [
+      {
+        "id": "HT_01",
+        "name": "First Hearing / Admission",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_02",
+        "name": "Notice / Service Report",
+        "requires_preparation": false
+      },
+      {
+        "id": "HT_03",
+        "name": "Reply / Counter Filing",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_04",
+        "name": "Interim Application Hearing",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_05",
+        "name": "Evidence Recording - Chief",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_06",
+        "name": "Evidence Recording - Cross",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_07",
+        "name": "Arguments Hearing",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_08",
+        "name": "Final Arguments",
+        "requires_preparation": true
+      },
+      {
+        "id": "HT_09",
+        "name": "Judgment / Orders",
+        "requires_preparation": false
+      },
+      {
+        "id": "HT_10",
+        "name": "Mention / Urgent Listing",
+        "requires_preparation": false
+      },
+      {
+        "id": "HT_11",
+        "name": "Settlement Discussions",
+        "requires_preparation": false
+      }
+    ],
+    "case_outcomes": [
+      {
+        "id": "OUT_01",
+        "name": "Allowed / Decreed",
+        "favorable": true
+      },
+      {
+        "id": "OUT_02",
+        "name": "Partially Allowed",
+        "favorable": true
+      },
+      {
+        "id": "OUT_03",
+        "name": "Dismissed",
+        "favorable": false
+      },
+      {
+        "id": "OUT_04",
+        "name": "Withdrawn",
+        "favorable": null
+      },
+      {
+        "id": "OUT_05",
+        "name": "Compromised / Settled",
+        "favorable": null
+      },
+      {
+        "id": "OUT_06",
+        "name": "Disposed of as Infructuous",
+        "favorable": null
+      },
+      {
+        "id": "OUT_07",
+        "name": "Transferred",
+        "favorable": null
+      },
+      {
+        "id": "OUT_08",
+        "name": "Decreed Ex-Parte",
+        "favorable": true
+      },
+      {
+        "id": "OUT_09",
+        "name": "Dismissed for Default",
+        "favorable": false
+      },
+      {
+        "id": "OUT_10",
+        "name": "Remanded Back",
+        "favorable": null
+      }
+    ],
+    "party_types": [
+      {
+        "id": "PT_01",
+        "name": "Individual",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_02",
+        "name": "Hindu Undivided Family (HUF)",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_03",
+        "name": "Private Limited Company",
+        "requires_pan": true,
+        "requires_cin": true
+      },
+      {
+        "id": "PT_04",
+        "name": "Public Limited Company",
+        "requires_pan": true,
+        "requires_cin": true
+      },
+      {
+        "id": "PT_05",
+        "name": "Partnership Firm",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_06",
+        "name": "LLP",
+        "requires_pan": true,
+        "requires_llpin": true
+      },
+      {
+        "id": "PT_07",
+        "name": "Trust",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_08",
+        "name": "Society",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_09",
+        "name": "Government Department",
+        "requires_pan": false
+      },
+      {
+        "id": "PT_10",
+        "name": "Public Sector Undertaking",
+        "requires_pan": true
+      },
+      {
+        "id": "PT_11",
+        "name": "Minor (through Guardian)",
+        "requires_pan": false
+      },
+      {
+        "id": "PT_12",
+        "name": "Deceased (through Legal Heirs)",
+        "requires_pan": false
+      }
+    ],
+    "attorney_roles": [
+      {
+        "id": "AR_01",
+        "name": "Senior Partner",
+        "can_sign_vakalatama": true,
+        "can_appear": true
+      },
+      {
+        "id": "AR_02",
+        "name": "Partner",
+        "can_sign_vakalatama": true,
+        "can_appear": true
+      },
+      {
+        "id": "AR_03",
+        "name": "Senior Associate",
+        "can_sign_vakalatama": true,
+        "can_appear": true
+      },
+      {
+        "id": "AR_04",
+        "name": "Associate",
+        "can_sign_vakalatama": false,
+        "can_appear": true
+      },
+      {
+        "id": "AR_05",
+        "name": "Junior Associate",
+        "can_sign_vakalatama": false,
+        "can_appear": true
+      },
+      {
+        "id": "AR_06",
+        "name": "Senior Counsel (Engaged)",
+        "can_sign_vakalatama": false,
+        "can_appear": true
+      },
+      {
+        "id": "AR_07",
+        "name": "Paralegal",
+        "can_sign_vakalatama": false,
+        "can_appear": false
+      },
+      {
+        "id": "AR_08",
+        "name": "Legal Intern",
+        "can_sign_vakalatama": false,
+        "can_appear": false
+      }
+    ],
+    "fee_types": [
+      {
+        "id": "FT_01",
+        "name": "Court Filing Fee",
+        "is_reimbursable": true,
+        "tax_applicable": false
+      },
+      {
+        "id": "FT_02",
+        "name": "Professional Fee - Consultation",
+        "is_reimbursable": false,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_03",
+        "name": "Professional Fee - Drafting",
+        "is_reimbursable": false,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_04",
+        "name": "Professional Fee - Appearance",
+        "is_reimbursable": false,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_05",
+        "name": "Professional Fee - Retainer",
+        "is_reimbursable": false,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_06",
+        "name": "Senior Counsel Fee",
+        "is_reimbursable": true,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_07",
+        "name": "Documentation Charges",
+        "is_reimbursable": true,
+        "tax_applicable": true
+      },
+      {
+        "id": "FT_08",
+        "name": "Notary Charges",
+        "is_reimbursable": true,
+        "tax_applicable": false
+      },
+      {
+        "id": "FT_09",
+        "name": "Process Server Fee",
+        "is_reimbursable": true,
+        "tax_applicable": false
+      },
+      {
+        "id": "FT_10",
+        "name": "Travel & Conveyance",
+        "is_reimbursable": true,
+        "tax_applicable": false
+      },
+      {
+        "id": "FT_11",
+        "name": "Certified Copy Charges",
+        "is_reimbursable": true,
+        "tax_applicable": false
+      },
+      {
+        "id": "FT_12",
+        "name": "Success Fee / Contingency",
+        "is_reimbursable": false,
+        "tax_applicable": true
+      }
+    ],
+    "task_types": [
+      {
+        "id": "TSK_01",
+        "name": "Legal Research",
+        "default_duration_hours": 4
+      },
+      {
+        "id": "TSK_02",
+        "name": "Draft Preparation",
+        "default_duration_hours": 8
+      },
+      {
+        "id": "TSK_03",
+        "name": "Draft Review",
+        "default_duration_hours": 2
+      },
+      {
+        "id": "TSK_04",
+        "name": "Client Meeting",
+        "default_duration_hours": 1
+      },
+      {
+        "id": "TSK_05",
+        "name": "Court Appearance",
+        "default_duration_hours": 3
+      },
+      {
+        "id": "TSK_06",
+        "name": "Case Preparation for Hearing",
+        "default_duration_hours": 4
+      },
+      {
+        "id": "TSK_07",
+        "name": "Document Filing",
+        "default_duration_hours": 2
+      },
+      {
+        "id": "TSK_08",
+        "name": "Evidence Collection",
+        "default_duration_hours": 6
+      },
+      {
+        "id": "TSK_09",
+        "name": "Witness Preparation",
+        "default_duration_hours": 2
+      },
+      {
+        "id": "TSK_10",
+        "name": "Settlement Negotiation",
+        "default_duration_hours": 3
+      },
+      {
+        "id": "TSK_11",
+        "name": "Follow-up with Court",
+        "default_duration_hours": 1
+      }
+    ],
+    "priority_levels": [
+      {
+        "id": "PRI_01",
+        "name": "Critical",
+        "color": "#DC2626",
+        "response_time_hours": 2
+      },
+      {
+        "id": "PRI_02",
+        "name": "High",
+        "color": "#EA580C",
+        "response_time_hours": 8
+      },
+      {
+        "id": "PRI_03",
+        "name": "Medium",
+        "color": "#F59E0B",
+        "response_time_hours": 24
+      },
+      {
+        "id": "PRI_04",
+        "name": "Low",
+        "color": "#10B981",
+        "response_time_hours": 72
+      },
+      {
+        "id": "PRI_05",
+        "name": "Routine",
+        "color": "#6B7280",
+        "response_time_hours": 168
+      }
+    ],
+    "document_status": [
+      {
+        "id": "DS_01",
+        "name": "Draft",
+        "is_final": false
+      },
+      {
+        "id": "DS_02",
+        "name": "Under Review",
+        "is_final": false
+      },
+      {
+        "id": "DS_03",
+        "name": "Reviewed - Revision Required",
+        "is_final": false
+      },
+      {
+        "id": "DS_04",
+        "name": "Approved for Filing",
+        "is_final": false
+      },
+      {
+        "id": "DS_05",
+        "name": "Filed in Court",
+        "is_final": true
+      },
+      {
+        "id": "DS_06",
+        "name": "Served on Opposite Party",
+        "is_final": true
+      },
+      {
+        "id": "DS_07",
+        "name": "Archived",
+        "is_final": true
+      }
+    ],
+    "document_categories": [
+      {
+        "id": "DCAT_01",
+        "name": "Pleadings (Main Case)"
+      },
+      {
+        "id": "DCAT_02",
+        "name": "Interlocutory Applications (IA)"
+      },
+      {
+        "id": "DCAT_03",
+        "name": "Evidence & Affidavits"
+      },
+      {
+        "id": "DCAT_04",
+        "name": "Vakalatnama & Admin"
+      },
+      {
+        "id": "DCAT_05",
+        "name": "Notices & Correspondence"
+      },
+      {
+        "id": "DCAT_06",
+        "name": "Contracts & Agreements"
+      },
+      {
+        "id": "DCAT_07",
+        "name": "Court Orders & Judgments"
+      },
+      {
+        "id": "DCAT_08",
+        "name": "Appeals & Revisions"
+      },
+      {
+        "id": "DCAT_09",
+        "name": "Written Arguments"
+      },
+      {
+        "id": "DCAT_10",
+        "name": "Powers of Attorney"
+      },
+      {
+        "id": "DCAT_11",
+        "name": "Other"
+      }
+    ],
+    "document_types": [
+      {
+        "id": "DT_001",
+        "name": "Plaint",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_002",
+        "name": "Written Statement",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_003",
+        "name": "Replication / Rejoinder",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_004",
+        "name": "Writ Petition (Civil)",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_005",
+        "name": "Writ Petition (Criminal)",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_006",
+        "name": "Bail Application",
+        "category_id": "DCAT_02"
+      },
+      {
+        "id": "DT_007",
+        "name": "Injunction Application (Order 39 R 1&2)",
+        "category_id": "DCAT_02"
+      },
+      {
+        "id": "DT_008",
+        "name": "Exemption Application (Sec 205/317)",
+        "category_id": "DCAT_02"
+      },
+      {
+        "id": "DT_009",
+        "name": "Condonation of Delay Application",
+        "category_id": "DCAT_02"
+      },
+      {
+        "id": "DT_010",
+        "name": "Evidence Affidavit (Chief)",
+        "category_id": "DCAT_03"
+      },
+      {
+        "id": "DT_011",
+        "name": "Affidavit Sec 65B (Electronic Evidence)",
+        "category_id": "DCAT_03"
+      },
+      {
+        "id": "DT_012",
+        "name": "Vakalatnama",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_013",
+        "name": "Memo of Appearance",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_014",
+        "name": "Legal Notice",
+        "category_id": "DCAT_05"
+      },
+      {
+        "id": "DT_015",
+        "name": "Reply to Legal Notice",
+        "category_id": "DCAT_05"
+      },
+      {
+        "id": "DT_016",
+        "name": "Divorce Petition (Mutual Consent)",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_017",
+        "name": "Settlement Agreement (MOU)",
+        "category_id": "DCAT_06"
+      },
+      {
+        "id": "DT_018",
+        "name": "Shareholders Agreement",
+        "category_id": "DCAT_06"
+      },
+      {
+        "id": "DT_019",
+        "name": "Complaint u/s 138 NI Act",
+        "category_id": "DCAT_01"
+      },
+      {
+        "id": "DT_020",
+        "name": "Civil Appeal",
+        "category_id": "DCAT_08"
+      },
+      {
+        "id": "DT_021",
+        "name": "Criminal Appeal",
+        "category_id": "DCAT_08"
+      },
+      {
+        "id": "DT_022",
+        "name": "Revision Petition",
+        "category_id": "DCAT_08"
+      },
+      {
+        "id": "DT_023",
+        "name": "Special Leave Petition (SLP)",
+        "category_id": "DCAT_08"
+      },
+      {
+        "id": "DT_024",
+        "name": "Written Arguments",
+        "category_id": "DCAT_09"
+      },
+      {
+        "id": "DT_025",
+        "name": "Synopsis of Arguments",
+        "category_id": "DCAT_09"
+      },
+      {
+        "id": "DT_026",
+        "name": "List of Dates and Events",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_027",
+        "name": "List of Documents",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_028",
+        "name": "List of Witnesses",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_029",
+        "name": "Power of Attorney (General)",
+        "category_id": "DCAT_10"
+      },
+      {
+        "id": "DT_030",
+        "name": "Power of Attorney (Special)",
+        "category_id": "DCAT_10"
+      },
+      {
+        "id": "DT_031",
+        "name": "Cross-Examination Questions",
+        "category_id": "DCAT_03"
+      },
+      {
+        "id": "DT_032",
+        "name": "Case Brief / Summary",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_033",
+        "name": "Memo of Parties",
+        "category_id": "DCAT_04"
+      },
+      {
+        "id": "DT_034",
+        "name": "Other / Not Listed",
+        "category_id": "DCAT_11"
+      }
+    ],
+    "statutes": [
+      {
+        "id": "STAT_001",
+        "name": "Indian Penal Code, 1860",
+        "short_name": "IPC",
+        "type": "Criminal"
+      },
+      {
+        "id": "STAT_002",
+        "name": "Code of Criminal Procedure, 1973",
+        "short_name": "CrPC",
+        "type": "Procedural"
+      },
+      {
+        "id": "STAT_003",
+        "name": "Code of Civil Procedure, 1908",
+        "short_name": "CPC",
+        "type": "Procedural"
+      },
+      {
+        "id": "STAT_004",
+        "name": "Indian Evidence Act, 1872",
+        "short_name": "IEA",
+        "type": "Procedural"
+      },
+      {
+        "id": "STAT_005",
+        "name": "Negotiable Instruments Act, 1881",
+        "short_name": "NI Act",
+        "type": "Civil"
+      },
+      {
+        "id": "STAT_006",
+        "name": "Transfer of Property Act, 1882",
+        "short_name": "TPA",
+        "type": "Property"
+      },
+      {
+        "id": "STAT_007",
+        "name": "Hindu Marriage Act, 1955",
+        "short_name": "HMA",
+        "type": "Family"
+      },
+      {
+        "id": "STAT_008",
+        "name": "Hindu Succession Act, 1956",
+        "short_name": "HSA",
+        "type": "Family"
+      },
+      {
+        "id": "STAT_009",
+        "name": "Protection of Women from Domestic Violence Act, 2005",
+        "short_name": "PWDV Act",
+        "type": "Family"
+      },
+      {
+        "id": "STAT_010",
+        "name": "Companies Act, 2013",
+        "short_name": "Companies Act",
+        "type": "Corporate"
+      },
+      {
+        "id": "STAT_011",
+        "name": "Insolvency and Bankruptcy Code, 2016",
+        "short_name": "IBC",
+        "type": "Corporate"
+      },
+      {
+        "id": "STAT_012",
+        "name": "Consumer Protection Act, 2019",
+        "short_name": "CPA",
+        "type": "Consumer"
+      },
+      {
+        "id": "STAT_013",
+        "name": "Arbitration and Conciliation Act, 1996",
+        "short_name": "ACA",
+        "type": "Dispute Resolution"
+      },
+      {
+        "id": "STAT_014",
+        "name": "Real Estate (Regulation and Development) Act, 2016",
+        "short_name": "RERA",
+        "type": "Property"
+      },
+      {
+        "id": "STAT_015",
+        "name": "Income Tax Act, 1961",
+        "short_name": "IT Act",
+        "type": "Tax"
+      },
+      {
+        "id": "STAT_016",
+        "name": "Goods and Services Tax Act, 2017",
+        "short_name": "GST Act",
+        "type": "Tax"
+      },
+      {
+        "id": "STAT_017",
+        "name": "Limitation Act, 1963",
+        "short_name": "Limitation Act",
+        "type": "Procedural"
+      },
+      {
+        "id": "STAT_018",
+        "name": "Indian Contract Act, 1872",
+        "short_name": "ICA",
+        "type": "Civil"
+      },
+      {
+        "id": "STAT_019",
+        "name": "Specific Relief Act, 1963",
+        "short_name": "SRA",
+        "type": "Civil"
+      },
+      {
+        "id": "STAT_020",
+        "name": "Motor Vehicles Act, 1988",
+        "short_name": "MV Act",
+        "type": "Civil"
+      }
+    ],
+    "limitation_periods": [
+      {
+        "id": "LIM_01",
+        "description": "Suit for money lent",
+        "period_years": 3,
+        "article_number": "54",
+        "statute_id": "STAT_017"
+      },
+      {
+        "id": "LIM_02",
+        "description": "Suit for breach of contract",
+        "period_years": 3,
+        "article_number": "113",
+        "statute_id": "STAT_017"
+      },
+      {
+        "id": "LIM_03",
+        "description": "Suit for compensation for tortious act",
+        "period_years": 3,
+        "article_number": "113",
+        "statute_id": "STAT_017"
+      },
+      {
+        "id": "LIM_04",
+        "description": "Suit for possession of immovable property",
+        "period_years": 12,
+        "article_number": "65",
+        "statute_id": "STAT_017"
+      },
+      {
+        "id": "LIM_05",
+        "description": "Complaint u/s 138 NI Act (from notice period)",
+        "period_months": 1,
+        "article_number": "N/A",
+        "statute_id": "STAT_005"
+      },
+      {
+        "id": "LIM_06",
+        "description": "Consumer complaint",
+        "period_years": 2,
+        "article_number": "N/A",
+        "statute_id": "STAT_012"
+      },
+      {
+        "id": "LIM_07",
+        "description": "Appeal from decree (Civil)",
+        "period_days": 90,
+        "article_number": "116",
+        "statute_id": "STAT_017"
+      },
+      {
+        "id": "LIM_08",
+        "description": "Suit for divorce (from cause of action)",
+        "period_years": 1,
+        "article_number": "N/A",
+        "statute_id": "STAT_007"
+      }
+    ],
+    "relief_types": [
+      {
+        "id": "REL_01",
+        "name": "Monetary Decree",
+        "practice_area": "Civil"
+      },
+      {
+        "id": "REL_02",
+        "name": "Permanent Injunction",
+        "practice_area": "Civil"
+      },
+      {
+        "id": "REL_03",
+        "name": "Temporary / Ad-interim Injunction",
+        "practice_area": "Civil"
+      },
+      {
+        "id": "REL_04",
+        "name": "Specific Performance of Contract",
+        "practice_area": "Civil"
+      },
+      {
+        "id": "REL_05",
+        "name": "Declaration of Title",
+        "practice_area": "Property"
+      },
+      {
+        "id": "REL_06",
+        "name": "Partition and Separate Possession",
+        "practice_area": "Property"
+      },
+      {
+        "id": "REL_07",
+        "name": "Possession of Property",
+        "practice_area": "Property"
+      },
+      {
+        "id": "REL_08",
+        "name": "Dissolution of Marriage",
+        "practice_area": "Family"
+      },
+      {
+        "id": "REL_09",
+        "name": "Maintenance / Alimony",
+        "practice_area": "Family"
+      },
+      {
+        "id": "REL_10",
+        "name": "Child Custody",
+        "practice_area": "Family"
+      },
+      {
+        "id": "REL_11",
+        "name": "Acquittal",
+        "practice_area": "Criminal"
+      },
+      {
+        "id": "REL_12",
+        "name": "Bail (Regular / Anticipatory)",
+        "practice_area": "Criminal"
+      },
+      {
+        "id": "REL_13",
+        "name": "Quashing of FIR / Complaint",
+        "practice_area": "Criminal"
+      },
+      {
+        "id": "REL_14",
+        "name": "Damages / Compensation",
+        "practice_area": "Civil"
+      },
+      {
+        "id": "REL_15",
+        "name": "Winding Up of Company",
+        "practice_area": "Corporate"
+      },
+      {
+        "id": "REL_16",
+        "name": "Appointment of Arbitrator",
+        "practice_area": "Arbitration"
+      }
+    ],
+    "case_types": [
+      {
+        "id": "CT_CIV_01",
+        "name": "Civil Suit (Money Recovery)",
+        "practice_area": "Civil Litigation",
+        "primary_statute": "CPC, Order 37",
+        "typical_limitation_years": 3,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_003",
+          "DT_007",
+          "DT_009",
+          "DT_010",
+          "DT_012",
+          "DT_026",
+          "DT_027"
+        ],
+        "common_reliefs": [
+          "REL_01",
+          "REL_14"
+        ]
+      },
+      {
+        "id": "CT_CIV_02",
+        "name": "Title Suit / Property Partition",
+        "practice_area": "Civil Litigation",
+        "primary_statute": "Transfer of Property Act",
+        "typical_limitation_years": 12,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_007",
+          "DT_010",
+          "DT_012",
+          "DT_026",
+          "DT_027"
+        ],
+        "common_reliefs": [
+          "REL_05",
+          "REL_06",
+          "REL_07",
+          "REL_02"
+        ]
+      },
+      {
+        "id": "CT_CIV_03",
+        "name": "Specific Performance Suit",
+        "practice_area": "Civil Litigation",
+        "primary_statute": "Specific Relief Act",
+        "typical_limitation_years": 3,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_007",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_04",
+          "REL_01"
+        ]
+      },
+      {
+        "id": "CT_CRI_01",
+        "name": "Cheque Bounce (138 NI Act)",
+        "practice_area": "Criminal Litigation",
+        "primary_statute": "Negotiable Instruments Act",
+        "typical_limitation_months": 1,
+        "allowed_doc_types": [
+          "DT_019",
+          "DT_014",
+          "DT_015",
+          "DT_010",
+          "DT_008",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_01"
+        ]
+      },
+      {
+        "id": "CT_CRI_02",
+        "name": "Bail Matter (Anticipatory / Regular)",
+        "practice_area": "Criminal Litigation",
+        "primary_statute": "CrPC Sec 437/438/439",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_006",
+          "DT_012",
+          "DT_013",
+          "DT_010"
+        ],
+        "common_reliefs": [
+          "REL_12"
+        ]
+      },
+      {
+        "id": "CT_CRI_03",
+        "name": "Quashing Petition (Section 482 CrPC)",
+        "practice_area": "Criminal Litigation",
+        "primary_statute": "CrPC Section 482",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_005",
+          "DT_012",
+          "DT_010",
+          "DT_024"
+        ],
+        "common_reliefs": [
+          "REL_13"
+        ]
+      },
+      {
+        "id": "CT_FAM_01",
+        "name": "Divorce (Mutual Consent - 13B)",
+        "practice_area": "Family Law",
+        "primary_statute": "Hindu Marriage Act",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_016",
+          "DT_017",
+          "DT_012",
+          "DT_010"
+        ],
+        "common_reliefs": [
+          "REL_08"
+        ]
+      },
+      {
+        "id": "CT_FAM_02",
+        "name": "Domestic Violence (DV Act)",
+        "practice_area": "Family Law",
+        "primary_statute": "PWDV Act 2005",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_007",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_09",
+          "REL_03"
+        ]
+      },
+      {
+        "id": "CT_FAM_03",
+        "name": "Child Custody Petition",
+        "practice_area": "Family Law",
+        "primary_statute": "Guardian and Wards Act",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_10"
+        ]
+      },
+      {
+        "id": "CT_FAM_04",
+        "name": "Maintenance Petition (125 CrPC)",
+        "practice_area": "Family Law",
+        "primary_statute": "CrPC Section 125",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_09"
+        ]
+      },
+      {
+        "id": "CT_CORP_01",
+        "name": "Insolvency Petition (IBC)",
+        "practice_area": "Corporate / NCLT",
+        "primary_statute": "IBC 2016",
+        "typical_limitation_years": 3,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_014",
+          "DT_012",
+          "DT_009",
+          "DT_024"
+        ],
+        "common_reliefs": [
+          "REL_01"
+        ]
+      },
+      {
+        "id": "CT_CORP_02",
+        "name": "Company Petition (Oppression & Mismanagement)",
+        "practice_area": "Corporate / NCLT",
+        "primary_statute": "Companies Act Sec 241",
+        "typical_limitation_years": 3,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_012",
+          "DT_010"
+        ],
+        "common_reliefs": [
+          "REL_15"
+        ]
+      },
+      {
+        "id": "CT_CONS_01",
+        "name": "Consumer Complaint",
+        "practice_area": "Consumer Law",
+        "primary_statute": "Consumer Protection Act 2019",
+        "typical_limitation_years": 2,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_002",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_14",
+          "REL_01"
+        ]
+      },
+      {
+        "id": "CT_PROP_01",
+        "name": "RERA Complaint",
+        "practice_area": "Property Law",
+        "primary_statute": "RERA 2016",
+        "typical_limitation_years": 2,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_010",
+          "DT_012"
+        ],
+        "common_reliefs": [
+          "REL_14",
+          "REL_01",
+          "REL_07"
+        ]
+      },
+      {
+        "id": "CT_ARB_01",
+        "name": "Arbitration Petition (Section 11)",
+        "practice_area": "Arbitration",
+        "primary_statute": "Arbitration Act Sec 11",
+        "typical_limitation_years": 3,
+        "allowed_doc_types": [
+          "DT_001",
+          "DT_012",
+          "DT_010",
+          "DT_018"
+        ],
+        "common_reliefs": [
+          "REL_16"
+        ]
+      },
+      {
+        "id": "CT_WRIT_01",
+        "name": "Writ Petition - Service Matter",
+        "practice_area": "Constitutional / Writ",
+        "primary_statute": "Article 226",
+        "typical_limitation_years": null,
+        "allowed_doc_types": [
+          "DT_004",
+          "DT_012",
+          "DT_010",
+          "DT_024",
+          "DT_026"
+        ],
+        "common_reliefs": [
+          "REL_14"
+        ]
+      },
+      {
+        "id": "CT_APP_01",
+        "name": "Civil Appeal",
+        "practice_area": "Appellate",
+        "primary_statute": "CPC Order 41",
+        "typical_limitation_days": 90,
+        "allowed_doc_types": [
+          "DT_020",
+          "DT_009",
+          "DT_012",
+          "DT_024",
+          "DT_026"
+        ],
+        "common_reliefs": []
+      },
+      {
+        "id": "CT_APP_02",
+        "name": "Criminal Appeal",
+        "practice_area": "Appellate",
+        "primary_statute": "CrPC Chapter 29",
+        "typical_limitation_days": 30,
+        "allowed_doc_types": [
+          "DT_021",
+          "DT_009",
+          "DT_012",
+          "DT_024"
+        ],
+        "common_reliefs": [
+          "REL_11"
+        ]
+      }
+    ]
+  },
+  "template_mapping": {
+    "description": "Links Templates to Documents, Cases, and Court Levels.",
+    "entries": [
+      {
+        "template_id": "TMP_001",
+        "name": "Vakalatnama - High Court Generic",
+        "file_source": "s3://templates/admin/vak_hc.pdf",
+        "link_doc_type_id": "DT_012",
+        "link_court_level_id": "CL_HC",
+        "link_case_type_id": "ALL"
+      },
+      {
+        "template_id": "TMP_002",
+        "name": "Vakalatnama - District Court / MM",
+        "file_source": "s3://templates/admin/vak_dc.pdf",
+        "link_doc_type_id": "DT_012",
+        "link_court_level_id": "CL_DC",
+        "link_case_type_id": "ALL"
+      },
+      {
+        "template_id": "TMP_003",
+        "name": "Plaint for Summary Suit (Order 37)",
+        "file_source": "s3://templates/civil/plaint_summary.docx",
+        "link_doc_type_id": "DT_001",
+        "link_court_level_id": "CL_DC",
+        "link_case_type_id": "CT_CIV_01"
+      },
+      {
+        "template_id": "TMP_004",
+        "name": "Legal Notice - Cheque Bounce (Sec 138)",
+        "file_source": "s3://templates/crim/notice_138.docx",
+        "link_doc_type_id": "DT_014",
+        "link_court_level_id": "ALL",
+        "link_case_type_id": "CT_CRI_01"
+      },
+      {
+        "template_id": "TMP_005",
+        "name": "Complaint Draft - Magistrate 138",
+        "file_source": "s3://templates/crim/complaint_138.docx",
+        "link_doc_type_id": "DT_019",
+        "link_court_level_id": "CL_MM",
+        "link_case_type_id": "CT_CRI_01"
+      },
+      {
+        "template_id": "TMP_006",
+        "name": "First Motion Petition (13B HMA)",
+        "file_source": "s3://templates/family/first_motion.docx",
+        "link_doc_type_id": "DT_016",
+        "link_court_level_id": "CL_FAM",
+        "link_case_type_id": "CT_FAM_01"
+      },
+      {
+        "template_id": "TMP_007",
+        "name": "Settlement Deed (Matrimonial)",
+        "file_source": "s3://templates/family/settlement_mou.docx",
+        "link_doc_type_id": "DT_017",
+        "link_court_level_id": "ALL",
+        "link_case_type_id": "CT_FAM_01"
+      },
+      {
+        "template_id": "TMP_008",
+        "name": "Anticipatory Bail Application (Sessions)",
+        "file_source": "s3://templates/crim/bail_anticipatory.docx",
+        "link_doc_type_id": "DT_006",
+        "link_court_level_id": "CL_DC",
+        "link_case_type_id": "CT_CRI_02"
+      },
+      {
+        "template_id": "TMP_009",
+        "name": "Writ Petition Template (Article 226)",
+        "file_source": "s3://templates/writ/writ_226.docx",
+        "link_doc_type_id": "DT_004",
+        "link_court_level_id": "CL_HC",
+        "link_case_type_id": "CT_WRIT_01"
+      },
+      {
+        "template_id": "TMP_010",
+        "name": "Written Arguments - Civil",
+        "file_source": "s3://templates/civil/written_args.docx",
+        "link_doc_type_id": "DT_024",
+        "link_court_level_id": "ALL",
+        "link_case_type_id": "ALL"
+      },
+      {
+        "template_id": "TMP_011",
+        "name": "Civil Appeal Memorandum",
+        "file_source": "s3://templates/appeals/civil_appeal.docx",
+        "link_doc_type_id": "DT_020",
+        "link_court_level_id": "CL_HC",
+        "link_case_type_id": "CT_APP_01"
+      },
+      {
+        "template_id": "TMP_012",
+        "name": "Consumer Complaint Format",
+        "file_source": "s3://templates/consumer/complaint.docx",
+        "link_doc_type_id": "DT_001",
+        "link_court_level_id": "CL_CONS",
+        "link_case_type_id": "CT_CONS_01"
+      },
+      {
+        "template_id": "TMP_013",
+        "name": "RERA Complaint Template",
+        "file_source": "s3://templates/property/rera_complaint.docx",
+        "link_doc_type_id": "DT_001",
+        "link_court_level_id": "CL_RERA",
+        "link_case_type_id": "CT_PROP_01"
+      },
+      {
+        "template_id": "TMP_014",
+        "name": "List of Documents (CPC)",
+        "file_source": "s3://templates/admin/list_docs.docx",
+        "link_doc_type_id": "DT_027",
+        "link_court_level_id": "ALL",
+        "link_case_type_id": "ALL"
+      }
+    ]
+  },
+  "court_fee_structure": {
+    "description": "Standard court fee calculation rules (indicative - varies by state)",
+    "civil_suits": [
+      {
+        "value_range_min": 0,
+        "value_range_max": 10000,
+        "fee_percentage": null,
+        "fixed_fee": 50
+      },
+      {
+        "value_range_min": 10001,
+        "value_range_max": 50000,
+        "fee_percentage": 5,
+        "fixed_fee": null
+      },
+      {
+        "value_range_min": 50001,
+        "value_range_max": 100000,
+        "fee_percentage": 4,
+        "fixed_fee": null
+      },
+      {
+        "value_range_min": 100001,
+        "value_range_max": 500000,
+        "fee_percentage": 3,
+        "fixed_fee": null
+      },
+      {
+        "value_range_min": 500001,
+        "value_range_max": null,
+        "fee_percentage": 2.5,
+        "fixed_fee": null,
+        "max_cap": 50000
+      }
+    ],
+    "fixed_fees": [
+      {
+        "document_type": "Bail Application",
+        "fee": 100
+      },
+      {
+        "document_type": "Interlocutory Application",
+        "fee": 50
+      },
+      {
+        "document_type": "Writ Petition",
+        "fee": 500
+      },
+      {
+        "document_type": "Appeal",
+        "fee": 1000
+      },
+      {
+        "document_type": "Vakalatnama",
+        "fee": 10
+      }
+    ]
+  },
+  "sample_transaction_draft": [
+    {
+      "draft_id": "DR_10001",
+      "case_reference": "CASE_500",
+      "draft_name": "Notice to ABC Corp Final.docx",
+      "related_template_id": "TMP_004",
+      "related_doc_type_id": "DT_014",
+      "status": "DS_05",
+      "created_by": "AR_03",
+      "reviewed_by": "AR_02",
+      "priority": "PRI_02",
+      "variables_used": {
+        "client_name": "Rohan Das",
+        "amount": "5,00,000",
+        "cheque_date": "2023-12-01",
+        "cheque_number": "456789",
+        "bank_name": "HDFC Bank"
+      }
+    },
+    {
+      "draft_id": "DR_10002",
+      "case_reference": "CASE_501",
+      "draft_name": "Plaint - Property Suit - Shah v Kumar.docx",
+      "related_template_id": "TMP_003",
+      "related_doc_type_id": "DT_001",
+      "status": "DS_02",
+      "created_by": "AR_05",
+      "reviewed_by": null,
+      "priority": "PRI_03",
+      "variables_used": {
+        "plaintiff_name": "Rajesh Shah",
+        "defendant_name": "Amit Kumar",
+        "suit_value": "25,00,000",
+        "property_description": "Plot No. 45, Sector 12, Dwarka"
+      }
+    }
+  ],
+  "workflow_rules": {
+    "description": "Business rules and validations for the application",
+    "document_approval_chain": [
+      {
+        "role_from": "AR_08",
+        "must_review_by": "AR_05",
+        "description": "Intern drafts reviewed by Junior Associate"
+      },
+      {
+        "role_from": "AR_05",
+        "must_review_by": "AR_03",
+        "description": "Junior Associate drafts reviewed by Senior Associate"
+      },
+      {
+        "role_from": "AR_04",
+        "must_review_by": "AR_03",
+        "description": "Associate drafts reviewed by Senior Associate"
+      },
+      {
+        "role_from": "AR_03",
+        "must_approve_by": "AR_02",
+        "description": "Senior Associate drafts approved by Partner"
+      }
+    ],
+    "case_assignment_rules": [
+      {
+        "case_value_min": 0,
+        "case_value_max": 500000,
+        "min_attorney_role": "AR_04"
+      },
+      {
+        "case_value_min": 500001,
+        "case_value_max": 2000000,
+        "min_attorney_role": "AR_03"
+      },
+      {
+        "case_value_min": 2000001,
+        "case_value_max": null,
+        "min_attorney_role": "AR_02"
+      }
+    ],
+    "deadline_alerts": [
+      {
+        "event": "hearing_date",
+        "alert_days_before": [
+          7,
+          3,
+          1
+        ]
+      },
+      {
+        "event": "limitation_expiry",
+        "alert_days_before": [
+          30,
+          15,
+          7,
+          3
+        ]
+      },
+      {
+        "event": "reply_deadline",
+        "alert_days_before": [
+          5,
+          2,
+          1
+        ]
+      }
+    ]
+  },
+  "integration_hooks": {
+    "description": "External system integration points",
+    "court_apis": [
+      {
+        "id": "API_ECOURTS",
+        "name": "eCourts Services",
+        "endpoint": "https://services.ecourts.gov.in/",
+        "requires_auth": true
+      },
+      {
+        "id": "API_NJDG",
+        "name": "National Judicial Data Grid",
+        "endpoint": "https://njdg.ecourts.gov.in/",
+        "requires_auth": false
+      }
+    ],
+    "payment_gateways": [
+      {
+        "id": "PG_RAZORPAY",
+        "name": "Razorpay",
+        "for_court_fees": false,
+        "for_professional_fees": true
+      },
+      {
+        "id": "PG_ECOURT_PAY",
+        "name": "eCourts Payment",
+        "for_court_fees": true,
+        "for_professional_fees": false
+      }
+    ],
+    "document_storage": [
+      {
+        "id": "STOR_S3",
+        "name": "AWS S3",
+        "base_path": "s3://lawfirm-docs/",
+        "primary": true
+      },
+      {
+        "id": "STOR_GDRIVE",
+        "name": "Google Drive",
+        "base_path": "gdrive://lawfirm/",
+        "primary": false
+      }
+    ]
+  }
+}

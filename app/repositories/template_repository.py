@@ -45,3 +45,38 @@ class TemplateRepository(BaseRepository):
                 "caseType#templateId": sort_key
             }
         )
+
+    # Phase 2: Categorization Methods
+    def get_by_document_type(self, document_type_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_document_type',
+            KeyConditionExpression=Key("documentTypeId").eq(document_type_id)
+        )
+        return response.get("Items", [])
+
+    def get_by_court_level(self, court_level_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_court_level',
+            KeyConditionExpression=Key("courtLevelId").eq(court_level_id)
+        )
+        return response.get("Items", [])
+
+    def get_suggestions(self, court_level_id: str, case_type_id: str) -> List[dict]:
+        # Strategy: Query by court level (likely more selective) and filter by case type
+        # Or if court level is ALL, query by case type?
+        # Assuming courtLevelId is usually set for a case.
+        
+        # 1. Get exact matches for court level
+        exact_court = self.get_by_court_level(court_level_id)
+        
+        # 2. Get templates for ALL courts? (If we have GSI for keys)
+        # For now, use exact matches.
+        
+        filtered = []
+        for t in exact_court:
+            t_case_type = t.get('caseTypeId')
+            # Match if template matches exact case type OR is generic 'ALL'
+            if t_case_type == case_type_id or t_case_type == 'ALL' or not t_case_type:
+                filtered.append(t)
+                
+        return filtered

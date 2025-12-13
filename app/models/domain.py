@@ -22,15 +22,23 @@ class Client(BaseEntity):
     phone: Optional[str] = None
     address: Optional[str] = None
     status: str = "active"
+    partyTypeId: Optional[str] = None # Added for Phase 2
 
 class Case(BaseEntity):
     companyId: str
     clientId: str
     caseId: str = Field(default_factory=lambda: str(uuid.uuid4()))
     caseName: str
-    caseType: str
     description: Optional[str] = None
     status: str = "open"
+    # Added for Phase 2
+    courtLevelId: Optional[str] = None
+    caseTypeId: Optional[str] = None
+    practiceArea: Optional[str] = None
+    primaryStatuteId: Optional[str] = None
+    limitationYears: Optional[int] = None
+    allowedDocTypeIds: List[str] = []
+    reliefIds: List[str] = []
 
 class Document(BaseEntity):
     parentId: str
@@ -41,6 +49,12 @@ class Document(BaseEntity):
     s3Key: str
     mimeType: str
     fileSize: int
+    # Added for Phase 2
+    documentTypeId: Optional[str] = None
+    documentCategoryId: Optional[str] = None
+    courtLevelId: Optional[str] = None
+    status: str = "draft"
+    parentCaseTypeId: Optional[str] = None
 
 class Template(BaseEntity):
     companyId: str
@@ -49,6 +63,12 @@ class Template(BaseEntity):
     templateName: str
     description: Optional[str] = None
     s3Key: str
+    # Added for Phase 2
+    documentTypeId: Optional[str] = None
+    courtLevelId: Optional[str] = None
+    caseTypeId: Optional[str] = None
+    allowedCourtLevels: List[str] = []
+    allowedCaseTypes: List[str] = []
 
 class Draft(BaseEntity):
     caseId: str
@@ -57,3 +77,7 @@ class Draft(BaseEntity):
     draftName: str
     content: str
     status: str = "draft"
+    # Added for Phase 2
+    documentTypeId: Optional[str] = None
+    documentCategoryId: Optional[str] = None
+    userInstructions: Optional[str] = None

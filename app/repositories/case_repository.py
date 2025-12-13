@@ -153,3 +153,33 @@ class CaseRepository(BaseRepository):
             Select='COUNT'
         )
         return response.get("Count", 0)
+
+    # Phase 2: Categorization Methods
+    def get_by_court_level(self, court_level_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_court_level',
+            KeyConditionExpression=Key("courtLevelId").eq(court_level_id)
+        )
+        return response.get("Items", [])
+        
+    def get_by_case_type(self, case_type_id: str) -> List[dict]:
+        response = self.table.query(
+            IndexName='by_case_type',
+            KeyConditionExpression=Key("caseTypeId").eq(case_type_id)
+        )
+        return response.get("Items", [])
+        
+    def validate_allowed_documents(self, company_id: str, case_id: str, document_type_id: str) -> bool:
+        item = self.get_by_id(company_id, "", case_id)
+        if not item:
+            return False
+            
+        allowed = item.get('allowedDocTypeIds', [])
+        if not allowed:
+            # If empty, maybe allow all or none? 
+            # Assuming if strict categorization is enabled, it should be restricted.
+            # But for legacy cases without this field, we might allow all.
+            # Let's fallback to True if list is missing/empty, unless 'Phase 2' implies strictness.
+            return True
+            
+        return document_type_id in allowed

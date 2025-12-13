@@ -25,6 +25,9 @@ class ClientBase(BaseModel):
     tags: Optional[List[str]] = []
     referralSource: Optional[str] = None
     archived: bool = False
+    
+    # Phase 2: Categorization
+    partyTypeId: Optional[str] = None
 
 class IndividualClient(ClientBase):
     clientType: Literal['individual']
