@@ -719,10 +719,6 @@
       {
         "id": "DCAT_10",
         "name": "Powers of Attorney"
-      },
-      {
-        "id": "DCAT_11",
-        "name": "Other"
       }
     ],
     "document_types": [
@@ -890,11 +886,6 @@
         "id": "DT_033",
         "name": "Memo of Parties",
         "category_id": "DCAT_04"
-      },
-      {
-        "id": "DT_034",
-        "name": "Other / Not Listed",
-        "category_id": "DCAT_11"
       }
     ],
     "statutes": [

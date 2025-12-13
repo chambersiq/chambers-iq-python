@@ -41,10 +41,7 @@ async def chat_assistant(
         
         # 2. Config (Thread ID for memory)
         # Use email-based session ID if no threadId provided
-        config = {
-            "configurable": {"thread_id": request.threadId or f"{user_email}-session"},
-            "recursion_limit": 25
-        }
+        config = {"configurable": {"thread_id": request.threadId or f"{user_email}-session"}}
         
         # 3. Invoke
         # Use ainvoke or stream.

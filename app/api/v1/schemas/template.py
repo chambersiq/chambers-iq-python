@@ -11,10 +11,10 @@ class TemplateVariable(BaseModel):
 class TemplateBase(BaseModel):
     name: str
     description: str
+    category: str
     content: str
     variables: Optional[List[TemplateVariable]] = []
     documentType: Optional[str] = None  # Specific type (e.g. "Values & Mission")
-    caseType: Optional[str] = None      # Related case type (e.g. "civil-litigation")
     isSystem: bool = False
     
     # Phase 2: Categorization

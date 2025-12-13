@@ -29,6 +29,7 @@ class Case(BaseEntity):
     clientId: str
     caseId: str = Field(default_factory=lambda: str(uuid.uuid4()))
     caseName: str
+    # caseType: str # Removed
     description: Optional[str] = None
     status: str = "open"
     # Added for Phase 2
@@ -49,17 +50,17 @@ class Document(BaseEntity):
     s3Key: str
     mimeType: str
     fileSize: int
-    # Added for Phase 2
-    documentTypeId: Optional[str] = None
-    documentCategoryId: Optional[str] = None
-    courtLevelId: Optional[str] = None
+    # Required for Indian Law Categorization (Phase 2)
+    documentTypeId: str
+    documentCategoryId: str
+    courtLevelId: str
     status: str = "draft"
-    parentCaseTypeId: Optional[str] = None
+    parentCaseTypeId: str
 
 class Template(BaseEntity):
     companyId: str
     templateId: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    caseType: str
+    # caseType: str # Removed
     templateName: str
     description: Optional[str] = None
     s3Key: str
@@ -80,4 +81,3 @@ class Draft(BaseEntity):
     # Added for Phase 2
     documentTypeId: Optional[str] = None
     documentCategoryId: Optional[str] = None
-    userInstructions: Optional[str] = None

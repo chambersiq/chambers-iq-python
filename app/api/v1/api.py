@@ -1,6 +1,6 @@
 
 from fastapi import APIRouter
-from app.api.v1.routes import companies, clients, cases, documents, templates, drafts, users, dashboard, agent_workflows, assistant
+from app.api.v1.routes import companies, clients, cases, documents, templates, drafts, users, dashboard, agent_workflows, assistant, master_data
 
 router = APIRouter()
 router.include_router(companies.router, tags=["Companies"])
@@ -10,8 +10,8 @@ router.include_router(documents.router, tags=["Documents"])
 router.include_router(templates.router, tags=["Templates"])
 router.include_router(drafts.router, tags=["Drafts"])
 router.include_router(users.router, tags=["Users"])
+router.include_router(master_data.router, tags=["Master Data"])
 
 router.include_router(dashboard.router, tags=["Dashboard"])
 router.include_router(agent_workflows.router, prefix="/workflows", tags=["Agent Workflows"])
 router.include_router(assistant.router, prefix="/ai/assistant", tags=["AI Assistant"])
-

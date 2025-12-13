@@ -36,14 +36,11 @@ class TemplateService:
             # or we can let it bubble up. But printing it helps if we can see stdout.
             raise e
         
-        # Use documentTypeId as the first part of SK, or 'general' if missing
-        sk_prefix = data.documentTypeId if data.documentTypeId else "general"
-
         template_dict = data.model_dump()
         template_dict.update({
             "companyId": company_id,
             "templateId": template_id,
-            "caseType#templateId": f"{sk_prefix}#{template_id}", # Construct SK
+            "caseType#templateId": f"{data.category}#{template_id}", # Construct SK
             "s3Key": s3_key,
             "createdAt": now,
             "updatedAt": now,
@@ -54,12 +51,6 @@ class TemplateService:
         # But we keep it in the returned object
         db_item = template_dict.copy()
         del db_item['content']
-        # Remove category from dict if it slipped in (though we removed from schema)
-        if 'category' in db_item:
-            del db_item['category']
-
-        # Remove keys with None values to avoid DynamoDB ValidationException (Type mismatch)
-        db_item = {k: v for k, v in db_item.items() if v is not None}
         
         self.repo.create(db_item)
         return Template(**template_dict)
@@ -106,6 +97,8 @@ class TemplateService:
         except Exception as e:
             print(f"Error uploading sample document to S3: {e}")
             raise e
+            print(f"Error uploading sample document to S3: {e}")
+            raise e
 
     def update_template(self, company_id: str, template_id: str, data: TemplateCreate) -> dict:
         """
@@ -120,16 +113,9 @@ class TemplateService:
         existing.update({
             "name": data.name,
             "description": data.description,
+            "category": data.category,
             "documentType": data.documentType,
-            "caseType": data.caseType, # Legacy
-            
-            # Phase 2: Categorization
-            "documentTypeId": data.documentTypeId,
-            "courtLevelId": data.courtLevelId,
-            "caseTypeId": data.caseTypeId,
-            "allowedCourtLevels": data.allowedCourtLevels,
-            "allowedCaseTypes": data.allowedCaseTypes,
-            
+            "caseType": data.caseType,
             "variables": [v.model_dump() for v in data.variables] if data.variables else [],
             "updatedAt": datetime.utcnow().isoformat()
         })
@@ -153,19 +139,10 @@ class TemplateService:
                 print(f"Error updating S3 content: {e}")
                 raise e
         
-        # 4. Clean None values to prevent DynamoDB ValidationException
-        # We need to explicitly check and remove keys if their value is None
-        # Use a list to avoid runtime error during iteration
-        keys_to_remove = [k for k, v in existing.items() if v is None]
-        for k in keys_to_remove:
-            del existing[k]
-
-        # 5. Save to DB (repo handles updates via overwrite)
+        # 4. Save to DB (repo handles updates via overwrite)
         self.repo.update(existing)
         
         # Return complete object with content
-        # Note: We must ensure the return object matches Pydantic schema
-        # If we deleted keys from 'existing', fetching values might fail if schema requires them (but they are Optional)
         return Template(**existing, content=data.content) # Return Updated version
     async def delete_template(self, company_id: str, template_id: str) -> bool:
         item = self.repo.get_by_id_global(template_id)

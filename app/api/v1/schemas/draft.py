@@ -11,7 +11,6 @@ class DraftBase(BaseModel):
     archived: bool = False
     templateId: Optional[str] = None
     documentType: Optional[str] = "General"
-    userInstructions: Optional[str] = None
     
     # Phase 2: Categorization
     documentTypeId: Optional[str] = None
@@ -31,7 +30,6 @@ class DraftUpdate(BaseModel):
     documentType: Optional[str] = None
     documentTypeId: Optional[str] = None
     documentCategoryId: Optional[str] = None
-    userInstructions: Optional[str] = None
 
 
 class Draft(DraftBase):

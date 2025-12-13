@@ -5,19 +5,18 @@ from datetime import datetime
 class DocumentBase(BaseModel):
     caseId: str
     name: str
-    type: str
     fileSize: int
     mimeType: str
     description: Optional[str] = None
     tags: Optional[List[str]] = []
     archived: bool = False
-    
-    # Phase 2: Categorization
-    documentTypeId: Optional[str] = None
-    documentCategoryId: Optional[str] = None
-    courtLevelId: Optional[str] = None
-    status: Optional[str] = None # from master data
-    parentCaseTypeId: Optional[str] = None
+
+    # Phase 2: Required Indian Law Categorization (Legacy type field removed)
+    documentTypeId: str
+    documentCategoryId: str
+    courtLevelId: str
+    status: str = "draft"
+    parentCaseTypeId: str
 
 class DocumentCreate(DocumentBase):
     generateSummary: bool = False
@@ -37,4 +36,3 @@ class Document(DocumentBase):
     uploadedBy: Optional[str] = None
     createdAt: str
     updatedAt: str
-

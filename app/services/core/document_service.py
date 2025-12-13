@@ -34,6 +34,11 @@ class DocumentService:
         # Construct URL (accessible after upload)
         
         doc_dict = data.model_dump()
+        
+        # Ensure documentCategoryId is set for GSI
+        if not doc_dict.get("documentCategoryId"):
+             doc_dict["documentCategoryId"] = "general"
+
         doc_dict.update({
             "parentId": data.caseId, # Set parentId for DynamoDB PK
             "companyId": company_id,
@@ -44,27 +49,6 @@ class DocumentService:
             "createdAt": now,
             "updatedAt": now
         })
-        
-        # Auto-populate category if missing (Phase 2)
-        if doc_dict.get("documentTypeId") and not doc_dict.get("documentCategoryId"):
-            try:
-                import json
-                import os
-                # Quick lookup from master-data.json
-                # Optimally this should be cached or loaded via a service
-                md_path = os.path.join(os.path.dirname(__file__), "../../static/master-data.json")
-                if os.path.exists(md_path):
-                    with open(md_path, "r") as f:
-                        md = json.load(f)
-                        doc_types = md.get("master_data", {}).get("document_types", [])
-                        dt = next((d for d in doc_types if d["id"] == doc_dict["documentTypeId"]), None)
-                        if dt and "category_id" in dt:
-                            doc_dict["documentCategoryId"] = dt["category_id"]
-            except Exception as e:
-                print(f"Failed to auto-populate category: {e}")
-
-        # Remove keys with None values to avoid DynamoDB ValidationException (Type mismatch)
-        doc_dict = {k: v for k, v in doc_dict.items() if v is not None}
         
         self.repo.create(doc_dict)
         
