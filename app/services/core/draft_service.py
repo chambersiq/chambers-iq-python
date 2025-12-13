@@ -89,3 +89,19 @@ class DraftService:
         if item:
             return self._enrich_draft_context(Draft(**item))
         return None
+
+    def delete_draft(self, company_id: str, draft_id: str) -> bool:
+        """
+        Delete a draft by ID.
+        """
+        draft = self.get_draft(company_id, draft_id)
+        if not draft:
+            return False
+            
+        # Verify company ownership
+        if draft.companyId != company_id:
+            return False # Or raise PermissionError
+            
+        # Delete using caseId (PK) and draftId (SK)
+        self.repo.delete(draft.caseId, draft.draftId)
+        return True

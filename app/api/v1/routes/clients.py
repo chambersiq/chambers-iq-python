@@ -64,3 +64,26 @@ def get_client(
     
     # Prereq: We need a method to get client by ID alone.
     return service.get_client_by_id(client_id)
+
+@router.delete("/companies/{company_id}/clients/{client_id}")
+def delete_client(
+    company_id: str,
+    client_id: str,
+    service: ClientService = Depends(get_client_service)
+):
+    success = service.delete_client(company_id, client_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Client not found or deletion failed")
+    return Response(status_code=204)
+
+@router.put("/companies/{company_id}/clients/{client_id}", response_model=Client)
+def update_client(
+    company_id: str,
+    client_id: str,
+    client_data: Union[IndividualClient, CompanyClient],
+    service: ClientService = Depends(get_client_service)
+):
+    updated = service.update_client(company_id, client_id, client_data)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return updated

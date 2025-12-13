@@ -107,16 +107,21 @@ def create_new_case(company_id: str, client_id: str, case_data: dict):
         company_id: Law firm ID.
         client_id: The ID of the client.
         case_data: Dictionary containing case details matching the Case schema.
+                   Must use valid enum values for types:
+                   - caseType: 'civil-litigation', 'criminal-defense', 'family-law', 'corporate-law', etc.
+                   - priority: 'low', 'medium', 'high', 'urgent'
+                   - feeArrangement: 'hourly', 'contingency', 'flat-fee', 'hybrid', 'pro-bono'
+                   - opposingPartyType: 'individual', 'company'
     """
     try:
-        # Validate using CaseCreate schema
+        # Validate using CaseCreate schema (strict Enum validation)
         # Inject defaults if missing
         if "caseSummary" not in case_data:
              case_data["caseSummary"] = "Created via AI Assistant"
              
         if "status" not in case_data:
              case_data["status"] = "active"
-             
+            
         model = CaseCreate(**case_data)
         return case_service.create_case(company_id, client_id, model)
     except Exception as e:

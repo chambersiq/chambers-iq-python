@@ -57,12 +57,13 @@ These are hard requirements. Any failure here = automatic FAIL status.
 
 Verify factual accuracy and cross-section consistency.
 
-#### Check 2.1: Facts Match Fact Registry
-- **What to check**: Every fact stated in the draft matches the fact registry
-- **Process**:
-  1. Extract factual assertions from draft (names, dates, amounts, locations)
-  2. Cross-reference with `fact_registry` from Context Manager
-  3. Flag mismatches
+#### Check 2.1: Required Facts Present in Draft Text (Critical)
+- **What to check**: Every required fact from fact_registry appears in the draft content
+- **Process**: 
+  1. Search draft for fact values (case-insensitive, allow slight variations)
+  2. **CRITICAL**: Only flag "missing fact" if the VALUE is not found in the text
+  3. Do NOT flag [MISSING: key] if the actual text contains the correct value (e.g. "Delhi High Court" is present but marker is missing)
+- **Goal**: Prevent false positives where LLM thinks fact is missing just because it didn't see a specific marker
 
 **Example**:
 ```python

@@ -17,13 +17,52 @@ class ImportantDate(BaseModel):
     description: Optional[str] = None
     reminderDays: Optional[int] = None
 
+from enum import Enum
+
+class CaseStatus(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    DISCOVERY = "discovery"
+    MOTION_PRACTICE = "motion-practice"
+    TRIAL = "trial"
+    SETTLEMENT = "settlement"
+    CLOSED = "closed"
+    ON_HOLD = "on-hold"
+
+class CaseType(str, Enum):
+    CIVIL_LITIGATION = "civil-litigation"
+    CRIMINAL_DEFENSE = "criminal-defense"
+    FAMILY_LAW = "family-law"
+    CORPORATE_LAW = "corporate-law"
+    REAL_ESTATE = "real-estate"
+    INTELLECTUAL_PROPERTY = "intellectual-property"
+    EMPLOYMENT = "employment"
+    IMMIGRATION = "immigration"
+    BANKRUPTCY = "bankruptcy"
+    ESTATE_PLANNING = "estate-planning"
+    TAX_LAW = "tax-law"
+    OTHER = "other"
+
+class CasePriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    URGENT = "urgent"
+
+class FeeArrangement(str, Enum):
+    HOURLY = "hourly"
+    CONTINGENCY = "contingency"
+    FLAT_FEE = "flat-fee"
+    HYBRID = "hybrid"
+    PRO_BONO = "pro-bono"
+
 class CaseBase(BaseModel):
     # Basic Info
     caseNumber: Optional[str] = None
     caseName: str
-    caseType: str
+    caseType: CaseType
     caseSubType: Optional[str] = None
-    status: str = "active"
+    status: CaseStatus = CaseStatus.ACTIVE
 
     # Case Summary
     caseSummary: Optional[str] = None
@@ -45,7 +84,7 @@ class CaseBase(BaseModel):
 
     # Parties
     opposingPartyName: Optional[str] = None
-    opposingPartyType: Optional[str] = None
+    opposingPartyType: Optional[Literal['individual', 'company']] = None
     opposingCounselName: Optional[str] = None
     opposingCounselFirm: Optional[str] = None
     opposingCounselEmail: Optional[str] = None
@@ -65,7 +104,7 @@ class CaseBase(BaseModel):
     # Financial
     estimatedCaseValue: Optional[float] = None
     clientDamagesClaimed: Optional[float] = None
-    feeArrangement: Optional[str] = None
+    feeArrangement: Optional[FeeArrangement] = None
     contingencyFeePercent: Optional[float] = None
     hourlyBillingRate: Optional[float] = None
     flatFeeAmount: Optional[float] = None
@@ -74,7 +113,7 @@ class CaseBase(BaseModel):
     costsAdvanced: Optional[float] = None
 
     # Additional
-    priority: str = "medium"
+    priority: CasePriority = CasePriority.MEDIUM
     caseSource: Optional[str] = None
     conflictCheckStatus: Optional[str] = None
     tags: Optional[List[str]] = []

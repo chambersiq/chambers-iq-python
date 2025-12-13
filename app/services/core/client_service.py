@@ -119,4 +119,55 @@ class ClientService:
                  client_dict['totalCases'] = 0
 
             return client_dict
+            return client_dict
         return None
+
+    def delete_client(self, company_id: str, client_id: str) -> bool:
+        item = self.repo.get_by_id(company_id, client_id)
+        if not item:
+            # Fallback global check if partition key logic differs
+            item = self.repo.get_by_id_global(client_id)
+        
+        if not item:
+            return False
+            
+        # Verify ownership
+        if item.get("companyId") != company_id: 
+            return False
+            
+        # Use repo delete which expects PK, SK
+        # Assuming ClientRepo uses companyId as PK and clientId as SK based on standard pattern
+        # But wait, create_client sets companyId and clientId.
+        # Let's verify repo structure. If standard GSIRepo, delete uses PK, SK.
+        # For now assume PK=companyId, SK=clientId.
+        self.repo.delete(item["companyId"], item["clientId"])
+        return True
+
+    def update_client(self, company_id: str, client_id: str, data: Union[IndividualClient, CompanyClient]) -> Optional[dict]:
+        existing = self.repo.get_by_id(company_id, client_id)
+        if not existing:
+            return None
+            
+        now = datetime.utcnow().isoformat()
+        
+        updates = {
+            "data": data.model_dump(),
+            "name": data.fullName if isinstance(data, IndividualClient) else data.companyName,
+            "email": data.email if isinstance(data, IndividualClient) else data.contactEmail,
+            "updatedAt": now,
+            "status": data.status
+        }
+        
+        self.repo.update(company_id, client_id, updates)
+        
+        # Construct and return response
+        updated_item = {**existing, **updates}
+        flat_data = updates["data"]
+        response_dict = {**updated_item, **flat_data}
+        response_dict.pop('data', None)
+        
+        # Recalculate cases (optional, but good for consistency)
+        if 'totalCases' in existing:
+             response_dict['totalCases'] = existing['totalCases']
+             
+        return response_dict

@@ -75,6 +75,21 @@ class Issue(BaseModel):
     severity: str # "Critical", "Warning", "Info"
     suggested_fix: Optional[str] = None
 
+class FactResolution(BaseModel):
+    """Result of an AI inference attempt for a missing fact."""
+    key: str
+    value: Any
+    confidence: float # 0.0 to 1.0
+    source: str # e.g., "inference_from_docs", "inference_from_case_data"
+    reasoning: str # Why the AI believes this is the value
+    is_resolved: bool # True if confidence >= threshold (e.g. 0.8)
+
+class ResolutionResult(BaseModel):
+    """Output of the Smart Resolution Engine."""
+    resolved_facts: List[FactResolution]
+    human_input_needed: List[str] # Keys that could not be resolved with high confidence
+    rag_context_used: List[str] # Optional: list of doc snippets used
+
 class QAReport(BaseModel):
     section_id: str
     status: QAStatus

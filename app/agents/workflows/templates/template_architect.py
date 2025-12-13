@@ -60,6 +60,9 @@ def template_architect_agent(state: LegalWorkflowState):
     import io
     
     # Initialize S3 Client
+    import urllib.parse
+    
+    # Initialize S3 Client
     s3 = S3Client()
     
     MAX_TOTAL_CHARS = 100000 
@@ -67,7 +70,12 @@ def template_architect_agent(state: LegalWorkflowState):
     
     samples_block = "Analyze these uploaded sample documents:\n\n"
     
-    for i, s3_key in enumerate(state["sample_docs"], 1):
+    for i, raw_s3_key in enumerate(state["sample_docs"], 1):
+        if not raw_s3_key:
+            continue
+            
+        # Handle potential encoding issues
+        s3_key = urllib.parse.unquote(raw_s3_key)
         print(f"  📥 Processing Sample {i}: {s3_key}")
         
         filename = s3_key.split('/')[-1].lower()
@@ -78,9 +86,10 @@ def template_architect_agent(state: LegalWorkflowState):
             response = s3.client.get_object(Bucket=settings.S3_BUCKET_NAME, Key=s3_key)
             file_content = response['Body'].read()
             
-            # 2. Extract Text based on extension
+            # 2. Extract Text based on extension OR content header
+            is_pdf = filename.endswith(".pdf") or file_content.startswith(b'%PDF-')
             
-            if filename.endswith(".pdf"):
+            if is_pdf:
                 try:
                     from pypdf import PdfReader
                     reader = PdfReader(io.BytesIO(file_content))
@@ -92,6 +101,9 @@ def template_architect_agent(state: LegalWorkflowState):
                 except ImportError:
                     print("    ❌ pypdf not installed, cannot read PDF")
                     text = "[Error: pypdf not installed]"
+                except Exception as e:
+                    print(f"    ❌ PDF Parse Error: {e}")
+                    text = f"[Error parsing PDF: {str(e)}]"
             else:
                 # Assume text
                 text = file_content.decode('utf-8', errors='ignore')
@@ -103,7 +115,7 @@ def template_architect_agent(state: LegalWorkflowState):
 
         except Exception as e:
             print(f"    ❌ Error reading file {s3_key}: {e}")
-            text = f"[Error reading file: {str(e)}]"
+            text = f"[Error reading file (Key: {s3_key}): {str(e)}]"
 
         # 3. Append to block
         header = f"--- DOCUMENT {i}: {filename} ---\n"

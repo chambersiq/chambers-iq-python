@@ -113,11 +113,15 @@ The parties were married on {marriage_date} at {marriage_location} according to 
 [CITE: Marriage registration laws if applicable]
 ```
 
-#### Step 2.2: Fill Placeholders
+#### Step 2.2: Fill ALL Placeholders Using Complete Registry
 Replace all `{variable}` placeholders with facts from Context Manager:
-- Use exact values from `required_facts`
+- **Check every fact in the registry**, not just "required" ones
+- If a fact exists in the registry, USE IT to fill the placeholder
 - If fact is missing, mark as `[MISSING: fact_key]` for QA to catch
 - Ensure consistency: if "Rajesh Kumar" was used in previous sections, use exactly that
+
+**HUMAN FEEDBACK PRIORITY**: If human provided values, use them INSTEAD OF registry values.
+Example: If human says "Court name - Delhi High Court", use "Delhi High Court" even if registry has different value.
 
 #### Step 2.3: Write Narrative Content
 For `[NARRATIVE_SECTION]` markers:

@@ -7,7 +7,9 @@ from app.agents.workflows.drafting.schema import (
     DraftedSection,
     QAReport,
     RefinementPlan,
-    Section
+    Section,
+    FactResolution,
+    ResolutionResult
 )
 
 class DraftState(TypedDict):
@@ -24,26 +26,24 @@ class DraftState(TypedDict):
     template_id: Optional[str]
     created_at: str # ISO string
 
-    # --- Case Data (from Case model) ---
-    case_data: Optional[Dict[str, Any]]  # Full Case object as dict
-
-    # --- Documents (from DocumentService) ---
-    documents: Optional[List[Dict[str, Any]]]  # List of Document objects
-
-    # --- Template Data ---
-    template_content: Optional[str]  # HTML/text template with placeholders
-    template_data: Optional[Dict[str, Any]]  # Full Template object
+    # Data
+    case_data: Dict[str, Any]
+    client_data: Optional[Dict[str, Any]] # NEW
+    template_content: Optional[str]
+    documents: List[Dict]
+    fact_registry: Dict[str, FactEntry]
+    section_memory: List[DraftedSection]
+    
+    # Intelligence
+    resolution_result: Optional[ResolutionResult]
+    
+    # Workflow
+    plan: Optional[DraftingPlan]
+    consistency_index: Dict[str, Dict[str, Any]]  # Track entity mentions across sections
 
     # --- Planning State ---
-    plan: Optional[DraftingPlan]
     current_section_idx: int
     completed_section_ids: List[str]
-
-    # --- Document & Context Intelligence (Oracle) ---
-    document_summaries: Dict[str, str] # doc_id -> summary
-    fact_registry: Dict[str, FactEntry] # key -> FactEntry check schema.py
-    section_memory: List[DraftedSection]  # Previously drafted sections
-    consistency_index: Dict[str, Dict[str, Any]]  # Track entity mentions across sections
 
     # --- Current Section Execution State ---
     current_section: Optional[Section]
@@ -61,6 +61,7 @@ class DraftState(TypedDict):
     human_verdict: Optional[str] # "approve", "reject", "refine"
     refinement_plan: Optional[RefinementPlan]
     draft_preview: Optional[str]  # Cleaning draft content for human display
+    missing_keys_detected: Optional[List[str]]  # Explicit list of missing keys from [MISSING: ...] markers
     workflow_logs: List[Dict[str, str]] # structured logs: {agent, message, timestamp}
     iteration_count: int # Safety to prevent infinite loops
     max_iterations: int  # Default: 3

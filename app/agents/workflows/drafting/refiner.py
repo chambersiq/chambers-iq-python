@@ -8,6 +8,7 @@ from functools import lru_cache
 import json
 
 from app.core.config import settings
+from app.agents.workflows.drafting.config import drafting_config
 
 class DraftRefiner:
     def __init__(self, llm=None):
@@ -48,14 +49,25 @@ class DraftRefiner:
         # Load System Prompt (will be cached at API level)
         system_prompt = load_drafting_prompt("refiner")
 
-        # Prepare context for caching (static case/template data)
+        # Prepare context for caching
+        fact_registry = state.get("fact_registry", {})
+        
+        # Check for low confidence facts used in the draft
+        low_conf_warnings = []
+        for key, entry in fact_registry.items():
+            # Check if fact was used (simple heuristic or explicit tracking)
+            if hasattr(entry, 'used_in_sections') and entry.used_in_sections:
+                if entry.confidence < drafting_config.CONFIDENCE_THRESHOLD and not entry.is_verified:
+                    low_conf_warnings.append(f"Fact '{key}' ({entry.value}) used with low confidence ({entry.confidence}).")
+
         cache_context = {
             "case_data": case_data,
-            "template_content": template_content[:5000] if template_content else "",  # Limit to save tokens
+            "template_content": template_content[:5000] if template_content else "", 
             "planned_sections": [
                 {"title": sec.title, "required_facts": sec.required_facts}
                 for sec in (plan.sections if plan else [])
-            ]
+            ],
+            "low_confidence_facts": low_conf_warnings
         }
 
         # Create validation query (NOT cached - changes per draft)
@@ -94,6 +106,12 @@ class DraftRefiner:
 ### 5. FINAL POLISH
 - Any formatting issues?
 - Any improvements needed?
+
+### 6. FACT CONFIDENCE CHECK
+The following facts were used with LOW CONFIDENCE (AI inferred but not verified):
+{json.dumps(low_conf_warnings, indent=2)}
+
+Use this list to generate "Warning" issues for any fact that looks suspicious or critical.
 
 ---
 

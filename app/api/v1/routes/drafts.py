@@ -59,3 +59,14 @@ def get_draft(
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
     return draft
+
+@router.delete("/{company_id}/drafts/{draft_id}", status_code=204)
+def delete_draft(
+    company_id: str,
+    draft_id: str,
+    service: DraftService = Depends(get_draft_service)
+):
+    success = service.delete_draft(company_id, draft_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Draft not found or could not be deleted")
+    return None

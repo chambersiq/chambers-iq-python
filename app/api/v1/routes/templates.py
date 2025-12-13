@@ -23,6 +23,29 @@ def create_template(
 ):
     return service.create_template(company_id, template)
 
+@router.put("/companies/{company_id}/templates/{template_id}", response_model=Template)
+def update_template(
+    company_id: str,
+    template_id: str,
+    template: TemplateCreate,
+    service: TemplateService = Depends(get_template_service)
+):
+    updated = service.update_template(company_id, template_id, template)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return updated
+
+@router.delete("/companies/{company_id}/templates/{template_id}")
+async def delete_template(
+    company_id: str,
+    template_id: str,
+    service: TemplateService = Depends(get_template_service)
+):
+    success = await service.delete_template(company_id, template_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"status": "success", "message": "Template deleted"}
+
 @router.get("/templates/{template_id}", response_model=Template)
 def get_template(
     template_id: str, 

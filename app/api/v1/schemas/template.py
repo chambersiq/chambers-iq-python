@@ -14,6 +14,8 @@ class TemplateBase(BaseModel):
     category: str
     content: str
     variables: Optional[List[TemplateVariable]] = []
+    documentType: Optional[str] = None  # Specific type (e.g. "Values & Mission")
+    caseType: Optional[str] = None      # Related case type (e.g. "civil-litigation")
     isSystem: bool = False
 
 class TemplateCreate(TemplateBase):

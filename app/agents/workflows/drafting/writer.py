@@ -9,6 +9,7 @@ from app.agents.workflows.drafting.llm_utils import (
 import uuid
 import re
 import os
+import json
 from typing import Dict, List, Any
 from functools import lru_cache
 
@@ -52,16 +53,24 @@ class DraftWriter:
         citations = []
         if section.required_laws:
             print(f"  [2/3] Querying Citation Agent for {len(section.required_laws)} legal references...")
-            # TODO: Implement actual citation agent query
-            # For now, create placeholder citations
+            citation_agent = get_citation_agent()
+            
+            # Query for each required law
             for law_query in section.required_laws:
-                citations.append(Citation(
-                    text=f"Reference to {law_query}",
-                    source="Indian Kanoon",
-                    url="https://indiankanoon.org/",
-                    case_name=None,
-                    year=None
-                ))
+                try:
+                    print(f"    Researching: {law_query}...")
+                    # Perform actual research
+                    research_result = await citation_agent.perform_research(f"Find legal details and precedents for: {law_query}")
+                    
+                    citations.append(Citation(
+                        text=research_result[:1500], # Limit text length
+                        source="Indian Kanoon (AI Research)",
+                        url="https://indiankanoon.org/", # Default, ideally extracted from research
+                        case_name=None,
+                        year=None
+                    ))
+                except Exception as e:
+                    print(f"    ⚠️ Research failed for '{law_query}': {str(e)}")
         else:
             print("  [2/3] No legal references needed, skipping Citation Agent")
 
@@ -102,15 +111,40 @@ class DraftWriter:
         This structure provides 48-66% overall cost savings on multi-section documents.
         """
         # Load system prompt (will be cached at API level)
-        system_prompt = load_drafting_prompt("writer")
+        # system_prompt = load_drafting_prompt("writer") # Original system prompt
+
+        # Add Template Context
+        if state.get("template_id"):
+            # We need to fetch the template details here or trust they are in state
+            # For simplicity, assuming the state might key template details or we fetch
+            # Ideally, the `orchestrator` or `context_manager` fetched it.
+            pass
+        
+        template_content = state.get("template_content", "")
+        template_description = state.get("template_description", "")
+        
+        system_prompt = f"""You are an expert legal drafter.
+    
+TASK: Draft a legal document based on the provided context.
+
+TEMPLATE CONTEXT:
+The user has selected a specific template.
+Template Content:
+{template_content}
+
+Template Guidance (Description):
+{template_description}
+        """
 
         # Prepare context for caching (static per case)
         cache_context = {
             "template": section.template_text,
             "case_data": state.get("case_data", {}),
+            "template_data": state.get("template_data", {}), # Contains usageInstructions
             "documents": state.get("documents", []),
             "previous_sections": context["previous_sections"],
-            "required_facts": context["required_facts"]
+            "required_facts": context["required_facts"],
+            "full_fact_registry": state.get("fact_registry", {})  # ADD THIS for context awareness
         }
 
         # Create section-specific query (NOT cached - changes per section)
@@ -134,18 +168,35 @@ class DraftWriter:
 
         if human_feedback:
              feedback_text += f"\n\n**CRITICAL INSTRUCTION FROM HUMAN (MUST FOLLOW)**:\n{human_feedback}\n"
+             # Explicit override instruction
+             feedback_text += "**HUMAN FEEDBACK PRIORITY**: If human provided values above, use them INSTEAD OF registry values.\n"
+             feedback_text += 'Example: If human says "Court name - Delhi High Court", use "Delhi High Court" even if registry has different value.\n'
         
         if reviewer_feedback and not human_feedback:
              # Only show reviewer feedback if no direct human override, or show both? 
              # Usually human feedback is "Fix X", which implies they saw the review.
              # Let's show both contextually.
              feedback_text += f"\n\n**Previous Reviewer Feedback**:\n{reviewer_feedback}\n"
+             
+        # Template Usage Instructions
+        template_data = state.get("template_data", {})
+        usage_instructions = template_data.get("usageInstructions")
+        if usage_instructions:
+            feedback_text += f"\n\n**TEMPLATE USAGE INSTRUCTIONS**:\n{usage_instructions}\n"
 
+        # Prepare available facts JSON for prompt
+        full_registry = state.get("fact_registry", {})
+        # Convert to simple dict of values
+        fact_values = {k: v.value if hasattr(v, 'value') else v for k, v in full_registry.items()}
+        
         user_message = f"""Draft the following section:
 
 **Section Title**: {section.title}
 
-**Required Facts**: {', '.join(section.required_facts) if section.required_facts else 'None'}
+**Available Facts**: 
+{json.dumps(fact_values, indent=2)}
+
+**Required Facts for This Section**: {', '.join(section.required_facts) if section.required_facts else 'None'}
 
 **Required Laws**: {', '.join(section.required_laws) if section.required_laws else 'None'}
 {citations_text}
@@ -154,13 +205,14 @@ class DraftWriter:
 
 **Instructions**:
 1. Use the template structure provided in the context
-2. Fill all placeholders with facts from the fact registry OR from the "CRITICAL INSTRUCTION FROM HUMAN" section
-3. Use formal Indian legal language appropriate for {context["case_context"].get("case_type", "legal document")}
-4. Integrate citations naturally into the text
-5. Mark missing facts as [MISSING: key] ONLY if they are not in the registry AND not provided in human instructions
-6. Maintain consistency with previously drafted sections
-7. Ensure all factual statements are traceable to the fact registry or explicitly provided instructions
-8. IF HUMAN FEEDBACK IS PROVIDED, YOU MUST INCORPORATE IT. Prioritize human instructions over registry missing flags.
+2. Fill ALL placeholders {{variable}} using the 'Available Facts' provided above. Check every fact in the registry, not just 'required' ones.
+3. If a placeholder exists in registry, use that value.
+4. Use formal Indian legal language appropriate for {context["case_context"].get("case_type", "legal document")}
+5. Integrate citations naturally into the text
+6. Mark missing facts as [MISSING: key] ONLY if they are not in the registry AND not provided in human instructions
+7. Maintain consistency with previously drafted sections
+8. Ensure all factual statements are traceable to the fact registry or explicitly provided instructions
+9. IF HUMAN FEEDBACK IS PROVIDED, YOU MUST INCORPORATE IT. Prioritize human instructions over registry missing flags.
 
 Please draft this section now."""
 

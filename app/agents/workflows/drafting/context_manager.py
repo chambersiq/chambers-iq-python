@@ -1,8 +1,22 @@
 from app.agents.workflows.drafting.state import DraftState
-from app.agents.workflows.drafting.schema import FactEntry, DraftedSection
+from app.agents.workflows.drafting.schema import FactEntry, FactResolution, ResolutionResult, DraftedSection
+from app.agents.workflows.drafting.llm_utils import create_cached_messages_with_context
+from langchain_core.messages import SystemMessage, HumanMessage
+from app.agents.workflows.drafting.config import drafting_config
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import os
+import html
+import re
+import json
+from app.services.core.case_service import CaseService
+from app.services.core.document_service import DocumentService
+from app.services.core.template_service import TemplateService
+from app.agents.workflows.drafting.cache import cache_content
+
+# Right after imports
+print(f"DEBUG: Module level - FactEntry imported: {FactEntry}")
+print(f"DEBUG: Module level - FactEntry type: {type(FactEntry)}")
 
 class DraftContextManager:
     def __init__(self, llm=None):
@@ -11,13 +25,104 @@ class DraftContextManager:
     async def initialize_context(self, state: DraftState) -> dict:
         """
         Agent Node: Initialize global context (Facts, Summaries) before drafting starts.
-
-        This extracts facts from:
-        1. Case metadata (caseSummary, keyFacts, etc.)
-        2. Document AI summaries (aiSummary, extractedData)
-        3. Template variables (to identify what's needed)
         """
-        print("--- [ContextManager] Initializing Context ---")
+        # Ensure data is loaded if not already present (failsafe)
+        if not state.get("case_data"):
+            print("  [ContextManager] Data not pre-loaded, loading now...")
+            data_update = await self.load_initial_data(state)
+            if "error" in data_update:
+                return data_update
+            # Update local vars from the loaded data
+            state.update(data_update)
+
+        return await self._extract_facts_and_summaries(state)
+
+    @cache_content(ttl=300)
+    async def _load_case_data(self, company_id: str, case_id: str):
+        case_service = CaseService()
+        case = case_service.get_case_by_id(company_id, case_id)
+        return case.model_dump() if case else None
+
+    @cache_content(ttl=300)
+    async def _load_template_data(self, company_id: str, template_id: str):
+        template_service = TemplateService()
+        template = template_service.get_template(company_id, template_id)
+        if template:
+            return {
+                "data": template.model_dump(),
+                "content": template.content
+            }
+        return None
+
+    async def _load_documents_lazy(self, company_id: str, case_id: str, limit: int = None):
+        document_service = DocumentService()
+        documents = document_service.get_documents(company_id, case_id)
+        # Filter to AI processed docs
+        completed_docs = [doc for doc in documents if doc.aiStatus == "completed"]
+        # Sort by newest
+        completed_docs.sort(key=lambda x: x.createdAt, reverse=True)
+        if limit:
+            completed_docs = completed_docs[:limit]
+        return [doc.model_dump() for doc in completed_docs]
+
+    async def load_initial_data(self, state: DraftState) -> dict:
+        """
+        Centralized data loading. Called by the first node in the graph.
+        """
+        print("--- [ContextManager] Loading Initial Data ---")
+        case_id = state.get("case_id")
+        company_id = state.get("company_id")
+        template_id = state.get("template_id")
+        
+        if not case_id or not company_id:
+            print(f"  [Error] Missing ID: case={case_id}, company={company_id}")
+            return {"error": "Missing case_id or company_id"}
+
+        # Load Case
+        case_data = await self._load_case_data(company_id, case_id)
+        if not case_data:
+            return {"error": f"Case {case_id} not found"}
+        
+        print(f"  Loaded case: {case_data.get('caseName', 'Unknown')}")
+
+        # Load Documents (Lazy)
+        documents_data = await self._load_documents_lazy(company_id, case_id, limit=10)
+        print(f"  Loaded {len(documents_data)} documents")
+
+        # Load Template
+        template_content = ""
+        template_data = None
+        if template_id:
+            template_result = await self._load_template_data(company_id, template_id)
+            if template_result:
+                template_data = template_result["data"]
+                # Sanitize loaded template content
+                template_content = self._sanitize_input(template_result["content"])
+                print(f"  Loaded template: {template_data.get('name', 'Unknown')}")
+
+            if template_result:
+                template_data = template_result["data"]
+                # Sanitize loaded template content
+                template_content = self._sanitize_input(template_result["content"])
+                print(f"  Loaded template: {template_data.get('name', 'Unknown')}")
+                
+                # Ensure description is available
+                template_description = template_data.get("description", "")
+        
+        return {
+            "case_data": case_data,
+            "documents": documents_data,
+            "template_content": template_content,
+            "template_data": template_data,
+            "template_description": template_description if template_id else "",
+            "case_type": case_data.get("caseType", "unknown")
+        }
+
+    async def _extract_facts_and_summaries(self, state: DraftState) -> dict:
+        """
+        Refactored logic for fact extraction (was in initialize_context).
+        """
+        print("--- [ContextManager] Initializing Facts & Memories ---")
 
         case_data = state.get("case_data", {})
         documents = state.get("documents", [])
@@ -27,92 +132,50 @@ class DraftContextManager:
         fact_registry = {}
         document_summaries = {}
 
-        # Step 1: Extract facts from Case metadata
+        # Step 1: Extract facts from Case metadata (Comprehensive)
         if case_data:
-            # Case identifiers
-            if case_data.get("caseNumber"):
-                fact_registry["case_number"] = FactEntry(
-                    key="case_number",
-                    value=case_data["caseNumber"],
-                    source_document="case_metadata",
-                    source_page=None,
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
+            # Dynamic mapping of common case fields to fact keys
+            # Add more mappings here as needed
+            field_mappings = {
+                'caseNumber': 'case_number',
+                'courtName': 'court_name',
+                'jurisdiction': 'jurisdiction',
+                'clientName': 'petitioner_name',
+                'opposingPartyName': 'respondent_name',
+                'caseSummary': 'case_summary',
+                'clientPosition': 'client_position', 
+                'prayer': 'prayer',
+                'judgeName': 'judge_name',
+                'filingDate': 'filing_date',
+                'caseType': 'case_type'
+            }
+            
+            for field, fact_key in field_mappings.items():
+                if case_data.get(field):
+                    fact_registry[fact_key] = FactEntry(
+                        key=fact_key,
+                        value=case_data[field],
+                        source_document="case_metadata",
+                        confidence=1.0,
+                        used_in_sections=[],
+                        last_updated=datetime.now()
+                    )
 
-            # Court details
-            if case_data.get("courtName"):
-                fact_registry["court_name"] = FactEntry(
-                    key="court_name",
-                    value=case_data["courtName"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            if case_data.get("jurisdiction"):
-                fact_registry["jurisdiction"] = FactEntry(
-                    key="jurisdiction",
-                    value=case_data["jurisdiction"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            # Parties
-            if case_data.get("clientName"):
-                fact_registry["petitioner_name"] = FactEntry(
-                    key="petitioner_name",
-                    value=case_data["clientName"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            if case_data.get("opposingPartyName"):
-                fact_registry["respondent_name"] = FactEntry(
-                    key="respondent_name",
-                    value=case_data["opposingPartyName"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            # Case summary and strategy
-            if case_data.get("caseSummary"):
-                fact_registry["case_summary"] = FactEntry(
-                    key="case_summary",
-                    value=case_data["caseSummary"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            if case_data.get("clientPosition"):
-                fact_registry["client_position"] = FactEntry(
-                    key="client_position",
-                    value=case_data["clientPosition"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
-
-            if case_data.get("prayer"):
-                fact_registry["prayer"] = FactEntry(
-                    key="prayer",
-                    value=case_data["prayer"],
-                    source_document="case_metadata",
-                    confidence=1.0,
-                    used_in_sections=[],
-                    last_updated=datetime.now()
-                )
+            # Extract any other scalar string fields from case_data as fallback
+            # This ensures we capture custom fields provided by the backend
+            for k, v in case_data.items():
+                if isinstance(v, str) and k not in field_mappings and v:
+                     # Convert camelCase to snake_case for the key
+                     snake_key = re.sub(r'(?<!^)(?=[A-Z])', '_', k).lower()
+                     if snake_key not in fact_registry:
+                         fact_registry[snake_key] = FactEntry(
+                            key=snake_key,
+                            value=v,
+                            source_document="case_metadata_autodetect",
+                            confidence=1.0,
+                            used_in_sections=[],
+                            last_updated=datetime.now()
+                         )
 
             # Key facts from array
             if case_data.get("keyFacts"):
@@ -287,6 +350,9 @@ class DraftContextManager:
             print("  No feedback to process")
             return {}
 
+        # Sanitize feedback
+        feedback = self._sanitize_input(feedback)
+        
         # Use LLM to extract facts
         print(f"  Extracting facts from: '{feedback[:50]}...'")
         
@@ -295,8 +361,22 @@ class DraftContextManager:
         import json
         import re
 
-        system_prompt = """You are a Legal Fact Extractor.
+        # Prepare extraction prompt based on context
+        resolution_result = state.get("resolution_result")
+        
+        if resolution_result and resolution_result.human_input_needed:
+             # Targeted extraction: We know what keys the human is providing
+             missing_keys_str = ", ".join(resolution_result.human_input_needed)
+             task_context = f"The user is specifically providing values for these missing keys: {missing_keys_str}. Focus extraction on these."
+        else:
+             # Generice extraction
+             task_context = "Extract all factual information provided."
+
+        system_prompt = f"""You are a Legal Fact Extractor.
 Your goal is to extract structured facts from human feedback and update the Fact Registry.
+
+Context:
+{task_context}
 
 Input:
 1. Current Fact Registry (JSON)
@@ -307,12 +387,12 @@ JSON dict of NEW or UPDATED facts (key-value pairs).
 Ignore feedback that is purely instructional (e.g., "rewrite this", "make it shorter") unless it contains factual data.
 
 Format:
-{
+{{
   "court_name": "Delhi High Court",
   "marriage_date": "2015-03-10"
-}
+}}
 
-If no facts are present, return {}.
+If no facts are present, return {{}}.
 """
         
         def get_fact_value(v):
@@ -354,22 +434,38 @@ Extract facts:"""
                 if new_facts:
                     print(f"  ✓ Extracted {len(new_facts)} new facts: {list(new_facts.keys())}")
                     
-                    # Update registry
+                    # Update registry with Human Facts
                     for k, v in new_facts.items():
                         fact_registry[k] = FactEntry(
                             key=k,
                             value=v,
-                            source_document="human_feedback", # Updated source name
-                            confidence=1.0,
+                            source_document="human_feedback",
+                            confidence=1.0, # Human is truth
                             used_in_sections=[],
                             last_updated=datetime.now()
                         )
-                    
+                        
+                    # Also merge auto-resolved facts if they exist
+                    if resolution_result:
+                         print(f"  ✓ Merging {len(resolution_result.resolved_facts)} auto-resolved facts.")
+                         for res in resolution_result.resolved_facts:
+                              # Only add if human didn't override it
+                              if res.key not in new_facts:
+                                  fact_registry[res.key] = FactEntry(
+                                    key=res.key,
+                                    value=res.value,
+                                    source_document=f"AI_Inference ({res.confidence})",
+                                    confidence=res.confidence,
+                                    used_in_sections=[],
+                                    last_updated=datetime.now()
+                                )
+
                     return {
                         "fact_registry": fact_registry,
+                        "resolution_result": None, # Clear partial state
                         "workflow_logs": state.get("workflow_logs", []) + [{
-                            "agent": "ContextManager", # Log as ContextManager
-                            "message": f"Extracted facts from feedback: {', '.join(new_facts.keys())}",
+                            "agent": "ContextManager", 
+                            "message": f"Updated registry with {len(new_facts)} human facts + auto-resolutions.",
                             "timestamp": "now"
                         }]
                     }
@@ -387,6 +483,183 @@ Extract facts:"""
             print(f"  ⚠️ Extraction failed: {e}")
 
         return {}
+
+    async def resolve_missing_info(self, missing_keys: List[str], state: DraftState) -> ResolutionResult:
+        """
+        Smart Resolution Engine:
+        Attempts to deduce missing facts from available context (Case Data + Documents)
+        using LLM inference before bothering the human user.
+        """
+        print(f"--- [ContextManager] Smart Resolution for {len(missing_keys)} keys ---")
+
+        # Pre-check: Don't resolve facts we already have with high confidence
+        fact_registry = state.get("fact_registry", {})
+        truly_missing = []
+        for key in missing_keys:
+            existing = fact_registry.get(key)
+            if not existing or existing.confidence < 0.8:
+                truly_missing.append(key)
+            else:
+                print(f"  ✓ Skipping {key}: Already loaded with confidence {existing.confidence}")
+        
+        if not truly_missing:
+             print("  ✓ All keys already present in registry. Skipping LLM.")
+             return ResolutionResult(resolved_facts=[], human_input_needed=[], rag_context_used=[])
+
+        missing_keys = truly_missing
+        
+        # 1. Gather rich context
+        context_str = self._gather_complete_context(state)
+        
+        # 2. Prepare Prompt
+        system_prompt = load_drafting_prompt("smart_resolver")
+        
+        user_msg = f"""Missing Information Keys:
+{json.dumps(missing_keys, indent=2)}
+
+Available Context:
+{context_str}
+
+**Task**:
+For each missing key, attempt to infer the value from the context.
+- Assign a confidence score (0.0 - 1.0).
+- If confidence >= {drafting_config.CONFIDENCE_THRESHOLD}, it will be auto-resolved.
+- If confidence < {drafting_config.CONFIDENCE_THRESHOLD}, we will ask the human.
+
+Provide output in JSON format matching the FactResolution schema."""
+
+        # 3. LLM Inference
+        # Helper to ensure LLM is ready
+        if not self.llm:
+            from app.agents.workflows.drafting.llm_utils import create_cached_llm
+            from app.core.config import settings
+            self.llm = create_cached_llm(model=settings.LLM_MODEL, provider=settings.LLM_PROVIDER)
+
+        try:
+            response = await self.llm.ainvoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_msg)
+            ])
+            
+            # 4. Parse & Process Results
+            content = response.content
+            json_match = re.search(r'\{[\s\S]*\}', content)
+            
+            resolved_facts = []
+            human_needed = []
+            
+            if json_match:
+                data = json.loads(json_match.group())
+                # Expecting data to be a list of FactResolution or a dict with a list
+                resolutions = data.get("resolutions", [])
+                
+                for res in resolutions:
+                    # Robust handling
+                    if not isinstance(res, dict):
+                         continue
+                    
+                    try:
+                        row = FactResolution(**res)
+                        if row.confidence >= drafting_config.CONFIDENCE_THRESHOLD:
+                            # High confidence -> Auto-resolve
+                            print(f"  ✓ Auto-resolved: {row.key} = {row.value} (Conf: {row.confidence})")
+                            resolved_facts.append(row)
+                        else:
+                            # Low confidence -> Flag for human
+                            print(f"  ? Needs Human: {row.key} (Conf: {row.confidence})")
+                            human_needed.append(row.key)
+                    except Exception as parse_err:
+                        print(f"  ⚠️ Failed to parse resolution item: {parse_err}")
+                
+                # Check for keys that were skipped entirely by LLM
+                processed_keys = set(r['key'] for r in resolutions)
+                for k in missing_keys:
+                    if k not in processed_keys:
+                        human_needed.append(k)
+
+                return ResolutionResult(
+                    resolved_facts=resolved_facts,
+                    human_input_needed=list(set(human_needed)), # Dedupe
+                    rag_context_used=[]
+                )
+
+        except Exception as e:
+            print(f"  ⚠️ Smart Resolution Failed: {e}")
+            # Fallback: All missing keys need human input
+            return ResolutionResult(
+                resolved_facts=[],
+                human_input_needed=missing_keys,
+                rag_context_used=[]
+            )
+
+        return ResolutionResult(resolved_facts=[], human_input_needed=missing_keys, rag_context_used=[])
+
+    def _gather_complete_context(self, state: DraftState) -> str:
+        """Aggregate all available context for inference."""
+        parts = []
+        
+        # Case Data
+        if state.get("case_data"):
+             parts.append(f"CASE DATA:\n{json.dumps(state['case_data'], indent=2)}")
+             
+        # Documents (Summaries & partial text inferred)
+        # In a real RAG system, we'd query vector DB here. 
+        # For now, we use loaded doc dumps which might be large, so we truncate.
+        docs = state.get("documents", [])
+        if docs:
+            doc_context = ""
+            for d in docs[:drafting_config.Initial_DOC_LIMIT]: 
+                doc_context += f"- Title: {d.get('title')}\n  Type: {d.get('documentType')}\n  Summary: {d.get('aiSummary')}\n"
+            parts.append(f"DOCUMENTS (Top {drafting_config.Initial_DOC_LIMIT}):\n{doc_context}")
+            
+        return "\n\n".join(parts)
+
+    def _update_fact_registry(self, state: DraftState, resolution: FactResolution) -> dict:
+        """Helper to write inferred fact to registry and return state update."""
+        print(f"DEBUG: _update_fact_registry called with key={resolution.key}")
+        print(f"DEBUG: FactEntry imported? {FactEntry is not None}")
+        print(f"DEBUG: FactEntry in globals? {'FactEntry' in globals()}")
+        
+        registry = state.get("fact_registry", {})
+        print(f"DEBUG: registry has {len(registry)} items")
+        
+        # Try creating FactEntry
+        try:
+            entry = FactEntry(
+                key=resolution.key,
+                value=resolution.value,
+                source_document=f"AI_Inference ({resolution.confidence})", # Correct field
+                confidence=resolution.confidence,
+                used_in_sections=[],
+                last_updated=datetime.now()
+            )
+            print(f"DEBUG: FactEntry created successfully: {entry.key}")
+            registry[resolution.key] = entry
+            return {"fact_registry": registry}
+        except Exception as e:
+            print(f"DEBUG: FactEntry creation failed: {e}")
+            raise
+
+
+
+    def _sanitize_input(self, text: str) -> str:
+        """
+        Basic sanitization to prevent injection attacks and handling logical issues.
+        Escapes HTML chars and limits length.
+        """
+        if not text:
+            return ""
+        
+        # Limit length to prevent context window DoS
+        MAX_LEN = 100000 
+        if len(text) > MAX_LEN:
+            print(f"  ⚠️ Warning: Input text truncated from {len(text)} to {MAX_LEN} chars")
+            text = text[:MAX_LEN]
+            
+        # Basic HTML escaping
+        return html.escape(text)
+
+
 
 # Helper with caching
 from app.agents.workflows.drafting.cache import cache_prompt

@@ -29,3 +29,19 @@ class TemplateRepository(BaseRepository):
     def create(self, item: dict) -> dict:
         self.save(item)
         return item
+
+    def update(self, item: dict) -> dict:
+        """
+        Update an existing template.
+        For DynamoDB, put_item (save) overwrites, effectively updating.
+        """
+        self.save(item)
+        return item
+
+    def delete(self, company_id: str, sort_key: str):
+        self.table.delete_item(
+            Key={
+                "companyId": company_id,
+                "caseType#templateId": sort_key
+            }
+        )

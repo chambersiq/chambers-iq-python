@@ -97,6 +97,68 @@ class TemplateService:
         except Exception as e:
             print(f"Error uploading sample document to S3: {e}")
             raise e
+            print(f"Error uploading sample document to S3: {e}")
+            raise e
+
+    def update_template(self, company_id: str, template_id: str, data: TemplateCreate) -> dict:
+        """
+        Update an existing template.
+        """
+        # 1. Fetch existing
+        existing = self.repo.get_by_id_global(template_id)
+        if not existing:
+            return None
+            
+        # 2. Update metadata
+        existing.update({
+            "name": data.name,
+            "description": data.description,
+            "category": data.category,
+            "documentType": data.documentType,
+            "caseType": data.caseType,
+            "variables": [v.model_dump() for v in data.variables] if data.variables else [],
+            "updatedAt": datetime.utcnow().isoformat()
+        })
+        
+        # 3. Handle Content Update (S3)
+        if data.content:
+            s3_key = existing.get("s3Key")
+            if not s3_key:
+                s3_key = f"{company_id}/templates/{template_id}.html"
+                existing["s3Key"] = s3_key
+                
+            try:
+                print(f"Updating template content in S3: {settings.S3_BUCKET_NAME}/{s3_key}")
+                self.s3.client.put_object(
+                    Bucket=settings.S3_BUCKET_NAME,
+                    Key=s3_key,
+                    Body=data.content.encode('utf-8'),
+                    ContentType='text/html'
+                )
+            except Exception as e:
+                print(f"Error updating S3 content: {e}")
+                raise e
+        
+        # 4. Save to DB (repo handles updates via overwrite)
+        self.repo.update(existing)
+        
+        # Return complete object with content
+        return Template(**existing, content=data.content) # Return Updated version
+    async def delete_template(self, company_id: str, template_id: str) -> bool:
+        item = self.repo.get_by_id_global(template_id)
+        if not item:
+            return False
+            
+        # Verify company ownership
+        if item.get("companyId") != company_id:
+            return False
+            
+        # Optional: Delete from S3
+        # if item.get("s3Key"):
+        #     self.s3.delete_object(settings.S3_BUCKET_NAME, item["s3Key"])
+            
+        self.repo.delete(item["companyId"], item["caseType#templateId"])
+        return True
 
     def generate_template_from_samples(self, company_id: str, generation_id: str, prompt: str) -> str:
         # Mock generation for now

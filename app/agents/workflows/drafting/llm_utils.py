@@ -15,6 +15,36 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 import os
 
+from app.agents.workflows.drafting.resilience import call_with_retry, LLMError
+
+class CachedLLM:
+    """
+    Wrapper for LLM clients that adds:
+    1. Automatic retries for transient failures
+    2. Connection validation
+    3. Type-safe error propagation
+    """
+    def __init__(self, client: Any):
+        self.client = client
+
+    async def ainvoke(self, messages: List[Any], **kwargs) -> Any:
+        """
+        Execute LLM call with built-in retry logic.
+        """
+        async def _execute():
+            try:
+                return await self.client.ainvoke(messages, **kwargs)
+            except Exception as e:
+                # Wrap in LLMError to trigger retry strategy in call_with_retry
+                raise LLMError(f"LLM Provider Error: {str(e)}") from e
+
+        return await call_with_retry(_execute)
+    
+    def __getattr__(self, name):
+        """Delegate other method calls to underlying client (e.g. stream, invoke)"""
+        return getattr(self.client, name)
+
+
 def create_cached_llm(
     model: Optional[str] = None,
     temperature: float = 0,
@@ -39,8 +69,9 @@ def create_cached_llm(
     if not model:
         model = settings.LLM_MODEL
     
+    client = None
     if provider == "anthropic":
-        return ChatAnthropic(
+        client = ChatAnthropic(
             model=model,
             api_key=settings.ANTHROPIC_API_KEY,
             temperature=temperature,
@@ -52,11 +83,13 @@ def create_cached_llm(
             }
         )
     else:  # OpenAI
-        return ChatOpenAI(
+        client = ChatOpenAI(
             model=model,
             api_key=settings.OPENAI_API_KEY,
             temperature=temperature
         )
+
+    return CachedLLM(client)
 
 def create_cached_system_message(content: str, cache: bool = True) -> SystemMessage:
     """

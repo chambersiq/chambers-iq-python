@@ -1,4 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import ToolMessage, AIMessage, SystemMessage, HumanMessage
+import json
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI
 from app.agents.workflows.drafting.state import DraftState
@@ -26,23 +28,51 @@ class DraftCitationAgent:
 
     async def perform_research(self, query: str) -> str:
         """
-        Executes a research loop.
-        In a real graph, this would be the node entry point.
+        Executes a research loop: Query -> LLM -> Tool -> LLM.
         """
         if not self.llm:
-            return "Citation Agent unavailable."
+            return "Citation Agent unavailable (LLM not initialized)."
             
-        # Simplified chain: User Query -> LLM (calls tools) -> Answer
-        
         system_prompt = load_drafting_prompt("citation_agent")
         
+        # Tool Map
+        tool_map = {t.name: t for t in citation_tools}
+        
         messages = [
-            ("system", system_prompt),
-            ("user", query)
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=query)
         ]
         
-        response = await self.llm.invoke(messages)
-        return response
+        # Max steps to prevent infinite loops
+        for _ in range(5):
+            response = await self.llm.ainvoke(messages)
+            messages.append(response)
+            
+            if not response.tool_calls:
+                return response.content
+                
+            # Execute tools
+            for tool_call in response.tool_calls:
+                tool_name = tool_call["name"]
+                tool_args = tool_call["args"]
+                
+                if tool_name in tool_map:
+                    print(f"    [CitationAgent] Calling tool {tool_name} with {tool_args}")
+                    try:
+                        tool_result = await tool_map[tool_name].ainvoke(tool_args)
+                        # Ensure result is string
+                        content = str(tool_result)
+                    except Exception as e:
+                        content = f"Error executing tool: {str(e)}"
+                else:
+                    content = "Error: Tool not found"
+                    
+                messages.append(ToolMessage(
+                    content=content,
+                    tool_call_id=tool_call["id"]
+                ))
+        
+        return "Research limit reached. Partial results: " + str(messages[-1].content)
 
 # Helper with caching
 import os
