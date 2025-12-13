@@ -60,11 +60,10 @@ class Document(BaseEntity):
 class Template(BaseEntity):
     companyId: str
     templateId: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    # caseType: str # Removed
     templateName: str
     description: Optional[str] = None
     s3Key: str
-    # Added for Phase 2
+    # Indian Law Categorization (Phase 2) - Optional for existing templates, required for new ones
     documentTypeId: Optional[str] = None
     courtLevelId: Optional[str] = None
     caseTypeId: Optional[str] = None

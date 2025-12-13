@@ -11,16 +11,14 @@ class TemplateVariable(BaseModel):
 class TemplateBase(BaseModel):
     name: str
     description: str
-    category: str
     content: str
     variables: Optional[List[TemplateVariable]] = []
-    documentType: Optional[str] = None  # Specific type (e.g. "Values & Mission")
     isSystem: bool = False
-    
-    # Phase 2: Categorization
-    documentTypeId: Optional[str] = None
-    courtLevelId: Optional[str] = None
-    caseTypeId: Optional[str] = None
+
+    # Required Indian Law Categorization (Phase 2)
+    documentTypeId: str
+    courtLevelId: str
+    caseTypeId: str
     allowedCourtLevels: List[str] = []
     allowedCaseTypes: List[str] = []
 

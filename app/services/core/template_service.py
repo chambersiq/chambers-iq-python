@@ -40,7 +40,7 @@ class TemplateService:
         template_dict.update({
             "companyId": company_id,
             "templateId": template_id,
-            "caseType#templateId": f"{data.category}#{template_id}", # Construct SK
+            "caseType#templateId": f"{data.documentTypeId}#{template_id}", # Keep key name for table compatibility, use new categorization value
             "s3Key": s3_key,
             "createdAt": now,
             "updatedAt": now,
@@ -113,9 +113,9 @@ class TemplateService:
         existing.update({
             "name": data.name,
             "description": data.description,
-            "category": data.category,
-            "documentType": data.documentType,
-            "caseType": data.caseType,
+            "documentTypeId": data.documentTypeId,
+            "courtLevelId": data.courtLevelId,
+            "caseTypeId": data.caseTypeId,
             "variables": [v.model_dump() for v in data.variables] if data.variables else [],
             "updatedAt": datetime.utcnow().isoformat()
         })

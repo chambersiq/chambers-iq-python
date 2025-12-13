@@ -26,7 +26,7 @@ class Document(DocumentBase):
     documentId: str
     url: str
     s3Key: str
-    
+
     # AI Analysis
     aiStatus: str = "pending"
     aiSummary: Optional[str] = None
