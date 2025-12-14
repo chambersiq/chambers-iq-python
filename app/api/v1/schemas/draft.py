@@ -40,3 +40,11 @@ class Draft(DraftBase):
     templateName: Optional[str] = None # Denormalized
     lastEditedAt: str
     createdAt: str
+
+# AI Template Generation Schemas
+class GenerateAITemplateRequest(BaseModel):
+    case_id: str
+    document_type: str
+
+class GenerateAITemplateResponse(BaseModel):
+    template_content: str

@@ -1,5 +1,14 @@
 import os
 from functools import lru_cache
+from typing import Optional
+from langchain_core.messages import HumanMessage
+from app.core.config import settings
+
+# Import LLM providers based on configuration
+if settings.LLM_PROVIDER == "anthropic":
+    from langchain_anthropic import ChatAnthropic
+elif settings.LLM_PROVIDER == "openai":
+    from langchain_openai import ChatOpenAI
 
 
 def load_system_prompt(category: str, filename: str) -> str:
@@ -55,5 +64,5 @@ def generate_schema_description(model_class) -> str:
                 description = f" - {description}"
                 
             schema_lines.append(f"- {field_name} ({type_str}) [{required}]{description}")
-            
+
     return "\n".join(schema_lines)

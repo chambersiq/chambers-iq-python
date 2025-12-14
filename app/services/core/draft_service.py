@@ -5,6 +5,7 @@ from app.repositories.draft_repository import DraftRepository
 from app.repositories.case_repository import CaseRepository
 from app.repositories.client_repository import ClientRepository
 from app.repositories.template_repository import TemplateRepository
+from app.agents.template_generator import TemplateGeneratorAgent
 from app.api.v1.schemas.draft import Draft, DraftCreate, DraftUpdate
 
 class DraftService:
@@ -13,6 +14,7 @@ class DraftService:
         self.case_repo = CaseRepository()
         self.client_repo = ClientRepository()
         self.template_repo = TemplateRepository()
+        self.template_generator = TemplateGeneratorAgent()
 
     def _enrich_draft_context(self, draft: Draft) -> Draft:
         # Fetch Case Name
@@ -105,3 +107,34 @@ class DraftService:
         # Delete using caseId (PK) and draftId (SK)
         self.repo.delete(draft.caseId, draft.draftId)
         return True
+
+    async def generate_ai_template_content(self, case_id: str, document_type: str) -> str:
+        """Generate template content using AI based on case data"""
+
+        # Get complete case data
+        case = self.case_repo.get_by_id_global(case_id)
+        if not case:
+            raise ValueError(f"Case {case_id} not found")
+
+        client = self.client_repo.get_by_id(case.get('companyId'), case.get('clientId'))
+        if not client:
+            raise ValueError(f"Client for case {case_id} not found")
+
+        # Extract additional facts if available (placeholder for now)
+        case_facts = {"summary": "Case facts to be extracted from documents"}
+
+        # Prepare comprehensive case data for AI
+        case_data = {
+            'case': case,
+            'client': client,
+            'case_facts': case_facts
+        }
+
+        # Remove sensitive fields
+        sensitive_fields = ['id', 'created_at', 'updated_at', 'internal_notes']
+        for obj in [case_data['case'], case_data['client']]:
+            for field in sensitive_fields:
+                obj.pop(field, None)
+
+        # Generate template using AI agent
+        return await self.template_generator.generate_template(case_data, document_type)

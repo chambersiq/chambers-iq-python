@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from app.services.core.draft_service import DraftService
-from app.api.v1.schemas.draft import Draft, DraftCreate, DraftUpdate
+from app.api.v1.schemas.draft import Draft, DraftCreate, DraftUpdate, GenerateAITemplateRequest, GenerateAITemplateResponse
 
 router = APIRouter()
 
@@ -70,3 +70,20 @@ def delete_draft(
     if not success:
         raise HTTPException(status_code=404, detail="Draft not found or could not be deleted")
     return None
+
+@router.post("/generate-ai-template", response_model=GenerateAITemplateResponse)
+async def generate_ai_template(
+    request: GenerateAITemplateRequest,
+    service: DraftService = Depends(get_draft_service)
+):
+    """Generate AI template based on case and document type"""
+    try:
+        template_content = await service.generate_ai_template_content(
+            request.case_id,
+            request.document_type
+        )
+        return GenerateAITemplateResponse(template_content=template_content)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Template generation failed: {str(e)}")
