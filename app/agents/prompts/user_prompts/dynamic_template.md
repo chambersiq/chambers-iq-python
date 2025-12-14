@@ -669,6 +669,21 @@ Analyze the complete case data above and:
     {{{{bench_location}}}}, {{{{registry_location}}}}, {{{{tribunal_form_number}}}}
 
 ═══════════════════════════════════════════════════════════════
+OUTPUT FORMAT REQUIREMENTS (MANDATORY HTML)
+═══════════════════════════════════════════════════════════════
+
+The ENTIRE output must be valid, well-structured HTML suitable for a rich text editor (e.g., TipTap).
+
+HTML FORMATTING RULES:
+- Use **<p>** tags to separate paragraphs and ensure proper line breaks.
+- Use **<h1>**, **<h2>**, **<h3>** for section headings, corresponding to the required legal hierarchy.
+- Use **<strong>** for bold text (replacing markdown **).
+- Use **<em>** for italics (replacing markdown *).
+- Use **<ol><li>** for all numbered legal paragraphs (Facts, Legal Submissions, Verification points).
+- Use **<ul><li>** for bulleted lists (if applicable).
+- All content must be enclosed within standard HTML tags.
+
+═══════════════════════════════════════════════════════════════
 OUTPUT REQUIREMENTS
 ═══════════════════════════════════════════════════════════════
 
@@ -865,7 +880,7 @@ EXAMPLE OF PROPER PLACEHOLDER USAGE
 A. **JURISDICTION OF THIS HON'BLE COURT**
    i. This Hon'ble Family Court at {{{{court_location}}}} has the territorial and pecuniary jurisdiction to entertain, try, and dispose of the present petition by virtue of **Section 7 of the Family Courts Act, 1984** read with **Section 19 of the Hindu Marriage Act, 1955**.  
    ii. **Section 19 of the Hindu Marriage Act, 1955** provides that a petition for dissolution of marriage may be presented to the District Court within the local limits of whose ordinary original civil jurisdiction: (a) the marriage was solemnized, or (b) the respondent at the time of presentation of the petition resides, or (c) the parties to the marriage last resided together, or (d) the petitioner is residing at the time of presentation of the petition, in a case where the respondent is at that time residing outside the territories to which this Act extends, or has not been heard of as being alive for a period of seven years or more by those persons who would naturally have heard of him if he were alive.
-   iii. In the present case, the Petitioner has been continuously residing within the territorial jurisdiction of this Hon'ble Court at {{{{petitioner_current_address}}}} for the past {{{{duration_of_residence}}}} years/months. The parties last resided together at {{{{last_matrimonial_address}}}}, which also falls within the jurisdiction of this Hon'ble Court. Therefore, the Petitioner satisfies clauses (c) and (d) of Section 19, thereby conferring jurisdiction upon this Hon'ble Court.
+   iii. In the present case, the Petitioner has been continuously residing within the territorial jurisdiction of this Hon'ble Court at {{{{petitioner_current_address}}}} for the past {{{{duration_of_residence}}}} years/months. The parties last resided together at {{{{last_matrimonial_address}}}}, which also falls within the jurisdiction of this Honble Court. Therefore, the Petitioner satisfies clauses (c) and (d) of Section 19, thereby conferring jurisdiction upon this Honble Court.
    iv. The Hon'ble Supreme Court in **[Citation: _Smt. Sushila Bai v. Prem Narayan_, AIR 1987 SC 1239]** has held that jurisdiction under Section 19 of the Hindu Marriage Act is determined by the residence of the petitioner at the time of filing the petition, provided the respondent resides outside India or has not been heard of for seven years. In the present case, {{{{jurisdiction_facts_summary}}}}.
 [Continue with extensive legal analysis...]
 ═══════════════════════════════════════════════════════════════
@@ -873,11 +888,19 @@ NOW GENERATE THE COMPLETE TEMPLATE
 ═══════════════════════════════════════════════════════════════
 Following ALL the above requirements:
 1. Use ONLY {{{{placeholders}}}} for specific details - NO actual names/dates/amounts
-2. Apply proper markdown formatting with bold, italics, spacing
-3. Generate COMPREHENSIVE content (15-20 pages worth)
-4. Include ALL sections listed above
-5. Expand each section with detailed reasoning
-6. Include minimum 10-15 case citations
-7. Make each facts paragraph 3-5 sentences
-8. Provide extensive legal analysis
+2. **Output the ENTIRE template in VALID HTML structure.**
+3. Apply proper HTML tags for formatting (<h1>, <strong>, <em>, <p>, <ol>).
+4. Generate COMPREHENSIVE content (15-20 pages worth)
+5. Include ALL sections listed above
+6. Expand each section with detailed reasoning
+7. Include minimum 10-15 case citations
+8. Make each facts paragraph 3-5 sentences
+9. Provide extensive legal analysis
+
+**FINAL PLACEHOLDER TRANSFORMATION RULE (MANDATORY):**
+Before outputting the final HTML, you MUST convert all internal **{{{{double_brace}}}}** placeholders to the external **{{single_brace}}** format.
+
+- **Convert:** `{{{{placeholder_name}}}}`
+- **To:** `{{placeholder_name}}`
+
 Generate the complete template now:
