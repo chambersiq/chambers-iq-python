@@ -674,14 +674,48 @@ OUTPUT FORMAT REQUIREMENTS (MANDATORY HTML)
 
 The ENTIRE output must be valid, well-structured HTML suitable for a rich text editor (e.g., TipTap).
 
+CRITICAL: Generate HTML with proper but reasonable spacing.
+
 HTML FORMATTING RULES:
-- Use **<p>** tags to separate paragraphs and ensure proper line breaks.
-- Use **<h1>**, **<h2>**, **<h3>** for section headings, corresponding to the required legal hierarchy.
-- Use **<strong>** for bold text (replacing markdown **).
-- Use **<em>** for italics (replacing markdown *).
-- Use **<ol><li>** for all numbered legal paragraphs (Facts, Legal Submissions, Verification points).
-- Use **<ul><li>** for bulleted lists (if applicable).
-- All content must be enclosed within standard HTML tags.
+- Use <h1> for main court title
+- Use <h2> for major section headings (SYNOPSIS, FACTS, LEGAL SUBMISSIONS)
+- Use <h3> for subsections (A., B., C.)
+- Use <p> for all paragraphs
+- Add <br> between major sections (single line break)
+- Add <br> between paragraphs within sections
+
+SECTION SPACING EXAMPLE:
+<h1>IN THE FAMILY COURT AT {{court_location}}</h1>
+<br>
+
+<h2>SYNOPSIS</h2>
+<br>
+<p>[Synopsis content]</p>
+<br>
+
+<h2>FACTS</h2>
+<br>
+
+<h3>Marriage and Family</h3>
+<br>
+<p>[Facts paragraph 1]</p>
+<br>
+<p>[Facts paragraph 2]</p>
+<br>
+
+<h2>LEGAL SUBMISSIONS</h2>
+<br>
+
+<h3>A. JURISDICTION</h3>
+<br>
+<p>[Legal content]</p>
+<br>
+<p>[More legal content]</p>
+<br>
+
+<h3>B. GROUNDS</h3>
+<br>
+<p>[Grounds content]</p>
 
 ═══════════════════════════════════════════════════════════════
 OUTPUT REQUIREMENTS

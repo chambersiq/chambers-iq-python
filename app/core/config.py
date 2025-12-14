@@ -27,7 +27,11 @@ class Settings(BaseSettings):
 
     # LLM Selection
     LLM_PROVIDER: str = "anthropic" # Options: "anthropic", "openai"
-    LLM_MODEL: str = "claude-3-haiku-20240307" # Fallback to Haiku if Sonnet unavaiable (404)
+    LLM_MODEL: str = "claude-sonnet-4-5-20250929"  # Latest Sonnet 4.5 (recommended)
+    # Alternative models:
+    # "claude-opus-4-5-20251101" - Most powerful (higher cost)
+    # "claude-3-5-sonnet-20241022" - Previous generation (good balance)
+    # "claude-3-5-haiku-20241022" - Fast & cheap for simple tasks
 
 
     # External APIs

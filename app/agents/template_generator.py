@@ -48,6 +48,6 @@ class TemplateGeneratorAgent:
         )
 
         # Call LLM with proper message structure (CachedLLM expects this format)
-        response = await self.llm.ainvoke(messages, max_tokens=3000)
+        response = await self.llm.ainvoke(messages, max_tokens=15000)
 
         return response.content
