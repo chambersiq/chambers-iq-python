@@ -63,9 +63,9 @@ class DraftRepository(BaseRepository):
         )
         return response.get("Items", [])
 
-    def delete(self, company_id: str, draft_id: str) -> None:
+    def delete(self, case_id: str, draft_id: str) -> None:
         self.table.update_item(
-            Key={"companyId": company_id, "draftId": draft_id},
+            Key={"caseId": case_id, "draftId": draft_id},
             UpdateExpression="SET archived = :val",
              ExpressionAttributeValues={
                 ":val": True
