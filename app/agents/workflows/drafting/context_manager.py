@@ -89,25 +89,21 @@ class DraftContextManager:
         documents_data = await self._load_documents_lazy(company_id, case_id, limit=10)
         print(f"  Loaded {len(documents_data)} documents")
 
-        # Load Template
-        template_content = ""
+        # Load Template - but preserve existing template_content if already provided
+        template_content = state.get("template_content", "")  # Preserve existing content
         template_data = None
-        if template_id:
+        template_description = ""
+
+        if template_id and not template_content:  # Only load from DB if no content provided
             template_result = await self._load_template_data(company_id, template_id)
             if template_result:
                 template_data = template_result["data"]
                 # Sanitize loaded template content
                 template_content = self._sanitize_input(template_result["content"])
+                template_description = template_data.get("description", "")
                 print(f"  Loaded template: {template_data.get('name', 'Unknown')}")
 
-            if template_result:
-                template_data = template_result["data"]
-                # Sanitize loaded template content
-                template_content = self._sanitize_input(template_result["content"])
-                print(f"  Loaded template: {template_data.get('name', 'Unknown')}")
-                
-                # Ensure description is available
-                template_description = template_data.get("description", "")
+        print(f"  Template content length: {len(template_content)}")
         
         return {
             "case_data": case_data,

@@ -18,15 +18,15 @@ class WorkflowRouter:
         Decide next step after QA Review:
         - FAIL + Missing Info -> Smart Resolution
         - FAIL (Quality) -> Redraft (up to limit) -> Human Review
-        - PASS -> Store & Continue
+        - PASS -> Store & Continue (ALWAYS, regardless of redraft count)
         """
         report = state.get("current_qa_report")
         current_section = state.get("current_section")
         section_redraft_count = state.get("section_redraft_count", 0)
-        
+
         # Check for missing info (Ground Truth from draft + Critical Issues)
         missing_info_detected = False
-        
+
         # 1. Draft Content Markers
         if current_section and state.get("current_draft"):
             content = state["current_draft"].content
@@ -44,8 +44,12 @@ class WorkflowRouter:
                         print(f"  ⚠️  Critical issue indicates missing info: '{issue.description}' -> Flagged for Smart Resolution")
                         break
 
-        # PRIORITY 0: Check Hard Loop Limits First
-        # If we exceeded the limit, we MUST stop or force human review, even if info is missing.
+        # FIRST: Check if reviewer PASSED - if so, ALWAYS continue (regardless of redraft count)
+        if report and report.status in [QAStatus.PASS, QAStatus.PASS_WITH_WARNINGS]:
+            print(f"  ✅ Section approved (redrafts: {section_redraft_count}), moving to next")
+            return "increment_section"
+
+        # SECOND: If FAIL, check loop limits
         if section_redraft_count >= self.config.MAX_SECTION_REDRAFTS:
              print(f"  ⚠️  Autonomous limit reached ({section_redraft_count}). Requesting Human intervention.")
              return "human_review_section"
@@ -55,16 +59,13 @@ class WorkflowRouter:
              return "smart_resolution"
 
         if report and report.status == QAStatus.FAIL:
-            # PRIORITY 1: Missing Data -> Handled above
-
             # PRIORITY 2: Quality/Style Issues -> Retry Logic
-            # We already checked MAX limit above. If we are here, we are under the limit.
             print(f"  → Routing to prepare_redraft (current count: {section_redraft_count}, max: {self.config.MAX_SECTION_REDRAFTS})")
             return "prepare_redraft"
 
-        # PASS / PASS_WITH_WARNINGS
-        print(f"  → Section approved, moving to next")
-        return "increment_section"
+        # Fallback (should not reach here)
+        print(f"  → Unexpected state, defaulting to human review")
+        return "human_review_section"
 
     def route_resolution(self, state: DraftState) -> Literal["prepare_redraft", "human_review_section"]:
         """

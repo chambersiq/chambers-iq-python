@@ -6,10 +6,12 @@ from app.agents.workflows.drafting.llm_utils import (
     create_cached_llm,
     create_cached_messages_with_context
 )
+from app.agents.workflows.drafting.logger import drafting_logger
 import uuid
 import re
 import os
 import json
+import time  # Added missing import
 from typing import Dict, List, Any
 from functools import lru_cache
 
@@ -34,12 +36,18 @@ class DraftWriter:
         4. Generate draft using LLM
         5. Fill placeholders and create final section
         """
+        workflow_id = state.get("workflow_id", "unknown")
+        section_idx = state.get("current_section_idx", 0)
+
+        drafting_logger.log_agent_start("writer", workflow_id, section_idx)
         print("--- [Writer] Drafting Section ---")
 
         plan = state.get("plan")
         current_idx = state.get("current_section_idx", 0)
 
         if not plan or current_idx >= len(plan.sections):
+             drafting_logger.log_error(workflow_id, "writer", "no_section_to_draft", "No section to draft")
+             drafting_logger.log_agent_end("writer", workflow_id, "error", section_idx=section_idx)
              return {"error": "No section to draft"}
 
         section = plan.sections[current_idx]
@@ -93,6 +101,19 @@ class DraftWriter:
 
         print(f"✓ Drafted {draft.word_count} words, used {len(draft.facts_used)} facts")
 
+        # Log section completion
+        drafting_logger.log_writer_output(
+            workflow_id=workflow_id,
+            section_idx=section_idx,
+            section_title=section.title,
+            word_count=draft.word_count,
+            facts_used=len(draft.facts_used),
+            citations_used=len(draft.citations_used),
+            placeholders_filled=draft.placeholders_filled
+        )
+
+        drafting_logger.log_agent_end("writer", workflow_id, "success", section_idx=section_idx)
+
         return {
             "current_draft": draft,
             "current_section_context": section_context,
@@ -119,13 +140,44 @@ class DraftWriter:
             # For simplicity, assuming the state might key template details or we fetch
             # Ideally, the `orchestrator` or `context_manager` fetched it.
             pass
-        
+
         template_content = state.get("template_content", "")
         template_description = state.get("template_description", "")
-        
-        system_prompt = f"""You are an expert legal drafter.
-    
-TASK: Draft a legal document based on the provided context.
+
+        # Enhanced feedback inclusion for redrafts
+        human_feedback = state.get("human_feedback")
+        reviewer_feedback = state.get("human_readable_feedback")
+
+        print(f"  📝 Writer Feedback Context:")
+        print(f"     - Human feedback: {human_feedback[:100] if human_feedback else 'None'}...")
+        print(f"     - Reviewer feedback: {reviewer_feedback[:100] if reviewer_feedback else 'None'}...")
+
+        # Build comprehensive feedback section
+        feedback_section = ""
+        if reviewer_feedback:
+            feedback_section = f"""
+
+**🔴 CRITICAL REVIEWER FEEDBACK - MUST ADDRESS ALL POINTS:**
+{reviewer_feedback}
+
+**REDRAFT INSTRUCTIONS:**
+- Carefully read all reviewer feedback above
+- Address every issue and requirement mentioned
+- Fill ALL missing placeholders using the case data
+- Fix any content quality or legal compliance issues
+- Ensure the draft meets all specified standards
+"""
+
+        if human_feedback:
+            feedback_section += f"""
+
+**👤 HUMAN FEEDBACK - HIGHEST PRIORITY:**
+{human_feedback}
+"""
+
+        system_prompt = f"""You are an expert legal drafter specializing in Indian legal documents.
+
+TASK: Draft a legal document section based on the provided context.
 
 TEMPLATE CONTEXT:
 The user has selected a specific template.
@@ -134,6 +186,8 @@ Template Content:
 
 Template Guidance (Description):
 {template_description}
+
+{feedback_section}
         """
 
         # Prepare context for caching (static per case)
@@ -189,32 +243,34 @@ Template Guidance (Description):
         # Convert to simple dict of values
         fact_values = {k: v.value if hasattr(v, 'value') else v for k, v in full_registry.items()}
         
-        user_message = f"""Draft the following section:
+        user_message = f"""**Complete Case Information:**
+{json.dumps(state.get("case_data", {}), indent=2)}
 
-**Section Title**: {section.title}
+**Document Summaries:**
+{json.dumps(state.get("document_summaries", {}), indent=2)}
 
-**Available Facts**: 
-{json.dumps(fact_values, indent=2)}
+{feedback_section}
 
-**Required Facts for This Section**: {', '.join(section.required_facts) if section.required_facts else 'None'}
+**Section to Draft:**
+Title: {section.title}
+Template: {section.template_text}
 
-**Required Laws**: {', '.join(section.required_laws) if section.required_laws else 'None'}
-{citations_text}
-{missing_facts_text}
-{feedback_text}
+**Instructions:**
+1. Using the Complete Case Information above, fill ALL placeholders ({{variable}}, äävariableåå, etc.) in the section template
+2. Map case data intelligently:
+   - {{court_state}} → Extract state from jurisdiction/location data
+   - {{court_location}} → Use court name + jurisdiction
+   - {{case_number}} → Use the case number from case data
+   - {{case_year}} → Extract year from filing date
+   - {{petitioner_name}} → Use client name
+   - {{respondent_name}} → Use opposing party name
+3. Do NOT leave any placeholders unfilled - use the case data to determine appropriate values
+4. Address all reviewer feedback provided above
+5. Use formal Indian legal language appropriate for matrimonial disputes
+6. Integrate any citations naturally if provided
+7. Ensure content is legally accurate and complete
 
-**Instructions**:
-1. Use the template structure provided in the context
-2. Fill ALL placeholders {{variable}} using the 'Available Facts' provided above. Check every fact in the registry, not just 'required' ones.
-3. If a placeholder exists in registry, use that value.
-4. Use formal Indian legal language appropriate for {context["case_context"].get("case_type", "legal document")}
-5. Integrate citations naturally into the text
-6. Mark missing facts as [MISSING: key] ONLY if they are not in the registry AND not provided in human instructions
-7. Maintain consistency with previously drafted sections
-8. Ensure all factual statements are traceable to the fact registry or explicitly provided instructions
-9. IF HUMAN FEEDBACK IS PROVIDED, YOU MUST INCORPORATE IT. Prioritize human instructions over registry missing flags.
-
-Please draft this section now."""
+Draft this section now:"""
 
         # Create messages with optimal caching structure
         messages = create_cached_messages_with_context(
@@ -226,24 +282,44 @@ Please draft this section now."""
         )
 
         # Invoke LLM (will use cached content if available within 5-minute window)
+        start_time = time.time()
         response = await self.llm.ainvoke(messages)
+        duration_ms = int((time.time() - start_time) * 1000)
 
         # Extract draft content
         draft_content = response.content if hasattr(response, 'content') else str(response)
 
-        # Log cache performance if available
+        # Log LLM call with performance metrics
+        workflow_id = state.get("workflow_id", "unknown")
+        section_idx = state.get("current_section_idx", 0)
+
         if hasattr(response, 'usage_metadata'):
             usage = response.usage_metadata
             cache_read = usage.get('cache_read_input_tokens', 0)
             cache_create = usage.get('cache_creation_input_tokens', 0)
             input_tokens = usage.get('input_tokens', 0)
+            output_tokens = usage.get('output_tokens', 0)
+
+            from app.core.config import settings
+            drafting_logger.log_llm_call(
+                workflow_id=workflow_id,
+                agent_name="writer",
+                model=settings.LLM_MODEL,
+                prompt_tokens=input_tokens,
+                completion_tokens=output_tokens,
+                total_tokens=input_tokens + output_tokens,
+                cache_read_tokens=cache_read,
+                cache_write_tokens=cache_create,
+                duration_ms=duration_ms,
+                section_idx=section_idx
+            )
 
             if cache_read > 0:
                 print(f"  ✓ Cache HIT: {cache_read} tokens read from cache (90% savings)")
             elif cache_create > 0:
                 print(f"  ⚡ Cache MISS: {cache_create} tokens written to cache (available for 5 minutes)")
 
-            print(f"  📊 Tokens: {input_tokens} input, {usage.get('output_tokens', 0)} output")
+            print(f"  📊 Tokens: {input_tokens} input, {output_tokens} output")
 
         return draft_content
 

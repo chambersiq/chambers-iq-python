@@ -3,6 +3,7 @@ from langgraph.checkpoint.memory import MemorySaver # For dev, use Postgres for 
 
 from app.agents.workflows.drafting.state import DraftState
 from app.agents.workflows.drafting.schema import AgentNode, QAStatus
+from app.agents.workflows.drafting.logger import drafting_logger
 
 # Import Nodes
 from app.agents.workflows.drafting.planner import planning_node
@@ -33,7 +34,30 @@ async def load_data_node(state: DraftState):
     Load case data, documents, and template before planning starts.
     Now delegated to ContextManager for centralized handling.
     """
-    return await context_manager.load_initial_data(state)
+    workflow_id = state.get("workflow_id", "unknown")
+    drafting_logger.log_workflow_start(
+        workflow_id=workflow_id,
+        case_id=state.get("case_id"),
+        user_id=state.get("user_id"),
+        template_id=state.get("template_id")
+    )
+
+    try:
+        result = await context_manager.load_initial_data(state)
+
+        # Log context loading
+        drafting_logger.log_context_loaded(
+            workflow_id=workflow_id,
+            case_id=state.get("case_id"),
+            template_id=state.get("template_id"),
+            documents_count=len(result.get("documents", [])),
+            facts_count=len(result.get("fact_registry", {}))
+        )
+
+        return result
+    except Exception as e:
+        drafting_logger.log_error(workflow_id, "load_data", "data_loading_failed", str(e))
+        raise
 
 # --- Smart Resolution Node ---
 
@@ -42,6 +66,8 @@ async def smart_resolution_node(state: DraftState):
     Attempt to resolve missing information using AI deduction.
     Uses explicit missing_keys_detected from Reviewer (preferred) or falls back to heuristics.
     """
+    workflow_id = state.get("workflow_id", "unknown")
+    drafting_logger.log_agent_start("smart_resolution", workflow_id)
     print("--- [SmartResolution] Attempting to deduce missing facts ---")
 
     # PRIORITY 1: Use explicit missing keys from Reviewer (most reliable)
@@ -107,10 +133,20 @@ async def smart_resolution_node(state: DraftState):
                 # is_verified=False, # Removed invalid field
             )
 
+    # Log fact resolution results
+    drafting_logger.log_fact_resolution(
+        workflow_id=workflow_id,
+        resolved_count=len(result.resolved_facts),
+        ai_inference_count=len([r for r in result.resolved_facts if r.confidence > 0.8]),
+        human_needed_count=len(result.human_input_needed)
+    )
+
+    drafting_logger.log_agent_end("smart_resolution", workflow_id, "success")
+
     return {
         "resolution_result": result,
-        "fact_registry": updated_registry, 
-        "human_readable_feedback": message if message else None, 
+        "fact_registry": updated_registry,
+        "human_readable_feedback": message if message else None,
         "workflow_logs": state.get("workflow_logs", []) + [{
             "agent": "SmartResolution",
             "message": f"Resolved {len(result.resolved_facts)}/{len(missing_keys)} facts. Human needed for: {len(result.human_input_needed)}",
@@ -166,6 +202,19 @@ async def increment_section(state: DraftState):
     After section approval, store it in section memory and move to next section.
     Also increments iteration count for loop prevention.
     """
+    workflow_id = state.get("workflow_id", "unknown")
+    section_idx = state.get("current_section_idx", 0)
+
+    current_section = state.get("current_section")
+    section_title = current_section.title if current_section else "unknown"
+
+    drafting_logger.log_section_progress(
+        workflow_id=workflow_id,
+        section_idx=section_idx,
+        section_title=section_title,
+        status="completed"
+    )
+
     current_draft = state.get("current_draft")
     iteration_count = state.get("iteration_count", 0)
 
@@ -249,7 +298,22 @@ workflow.add_node(AgentNode.ASSEMBLER, assembler_node)
 
 # Final human review node
 def human_review_final(state: DraftState):
+    workflow_id = state.get("workflow_id", "unknown")
+    drafting_logger.log_agent_start("final_human_review", workflow_id)
     print("--- [HumanReview] Final document review ---")
+
+    # Log workflow completion
+    sections_completed = len(state.get("section_memory", []))
+    total_iterations = state.get("iteration_count", 0)
+
+    drafting_logger.log_workflow_end(
+        workflow_id=workflow_id,
+        status="completed",
+        duration_ms=0,  # Would need to track from start
+        sections_completed=sections_completed
+    )
+
+    drafting_logger.log_agent_end("final_human_review", workflow_id, "success")
     pass  # Wait for input
 workflow.add_node(AgentNode.HUMAN, human_review_final)
 

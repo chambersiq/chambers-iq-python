@@ -70,6 +70,19 @@ class DraftReviewer:
 
         print(f"  ✓ QA Status: {status.value} ({len(critical_issues)} critical, {len(warnings)} warnings)")
 
+        # NEW: Log specific issues found
+        if critical_issues:
+            print(f"  🔴 Critical Issues Found:")
+            for i, issue in enumerate(critical_issues[:3], 1):  # Show first 3
+                print(f"     {i}. {issue.description}")
+                if issue.suggested_fix:
+                    print(f"        → Fix: {issue.suggested_fix}")
+
+        if warnings:
+            print(f"  🟡 Warning Issues Found:")
+            for i, issue in enumerate(warnings[:2], 1):  # Show first 2
+                print(f"     {i}. {issue.description}")
+
         # Clean the draft content for display (remove technical markers)
         cleaned_content = self._clean_draft_for_display(draft.content) if draft else ""
 

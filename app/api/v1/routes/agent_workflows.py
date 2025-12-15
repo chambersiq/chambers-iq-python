@@ -16,9 +16,10 @@ from app.services.core.case_service import CaseService
 class WorkflowStartRequest(BaseModel):
     case_id: str
     company_id: Optional[str] = None # Optional, inferred if missing
-    case_type: str
+    document_type: str  # Changed from case_type to document_type
     client_id: str
     template_id: Optional[str] = None
+    template_content: Optional[str] = None  # Added template_content field
     initial_instructions: Optional[str] = None
 
 class WorkflowResponse(BaseModel):
@@ -39,6 +40,12 @@ async def start_workflow(request: WorkflowStartRequest, background_tasks: Backgr
     """
     Start a new Multi-Agent Drafting Workflow.
     """
+    print("🔍 WORKFLOW START API DEBUG:")
+    print(f"- case_id: {request.case_id}")
+    print(f"- document_type: {request.document_type}")
+    print(f"- template_content length: {len(request.template_content or '')}")
+    print(f"- template_content preview: {(request.template_content or '')[:200]}...")
+
     # 1. Resolve Company ID if missing
     company_id = request.company_id
     if not company_id:
@@ -50,21 +57,26 @@ async def start_workflow(request: WorkflowStartRequest, background_tasks: Backgr
             company_id = case.companyId
         else:
             raise HTTPException(status_code=404, detail="Case not found, cannot infer company_id")
-            
+
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
-    
+
     initial_state = {
         "company_id": company_id,
         "case_id": request.case_id,
-        "case_type": request.case_type,
+        "document_type": request.document_type,  # Changed from case_type
         "client_id": request.client_id,
         "template_id": request.template_id,
+        "template_content": request.template_content,  # Added template_content
         "created_at": "2023-01-01", # TODO: Use real date
         "current_section_idx": 0,
         "completed_section_ids": [],
         "iteration_count": 0
     }
+
+    print("🔍 INITIAL STATE DEBUG:")
+    print(f"- template_content in state: {len(initial_state.get('template_content', ''))}")
+    print(f"- full initial_state keys: {list(initial_state.keys())}")
     
     # Run the graph until the first interrupt asynchronously
     # Note: For production, use a task queue like Celery/Arq

@@ -6,6 +6,7 @@ from app.agents.workflows.drafting.llm_utils import (
     create_cached_llm,
     create_cached_messages_with_context
 )
+from app.agents.workflows.drafting.logger import drafting_logger
 import uuid
 import re
 import json
@@ -35,11 +36,31 @@ class DraftMasterPlanner:
         3. Determine required facts and laws
         4. Create dependency relationships
         """
-        print(f"--- [Planner] Creating plan for Case: {state.get('case_id')} Type: {state.get('case_type')} ---")
+        workflow_id = state.get("workflow_id", "unknown")
+        drafting_logger.log_agent_start("planner", workflow_id)
+
+        document_type = state.get("document_type", "General")
+        print(f"--- [Planner] Creating plan for Case: {state.get('case_id')} Document Type: {document_type} ---")
 
         template_content = state.get("template_content", "")
         template_data = state.get("template_data", {})
-        case_type = state.get("case_type", "unknown")
+
+        # DEBUG LOGGING
+        print("🔍 PLANNER DEBUG:")
+        print(f"- workflow_id: {workflow_id}")
+        print(f"- document_type: {document_type}")
+        print(f"- template_content length: {len(template_content)}")
+        print(f"- template_content preview: {template_content[:200] if template_content else 'EMPTY'}...")
+        print(f"- state keys: {list(state.keys())}")
+
+        # Enhanced logging
+        drafting_logger.log_context_loaded(
+            workflow_id=workflow_id,
+            case_id=state.get("case_id"),
+            template_id=state.get("template_id"),
+            documents_count=len(state.get("documents", [])),
+            facts_count=len(state.get("fact_registry", {}))
+        )
 
         if not template_content:
             print("Warning: No template content provided, creating minimal plan")
