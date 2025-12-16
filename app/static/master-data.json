@@ -888,6 +888,181 @@
         "category_id": "DCAT_04"
       }
     ],
+    "supporting_document_categories": [
+      {
+        "id": "SCAT_01",
+        "name": "Financial Documents",
+        "description": "Bank statements, cheques, financial records",
+        "icon": "receipt-indian-rupee",
+        "color": "#10B981",
+        "subcategories": [
+          { "id": "SCAT_01_01", "name": "Bank Statements", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_01_02", "name": "Cheque Photocopies", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_01_03", "name": "Demand Drafts / Pay Orders", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_01_04", "name": "Financial Agreements / Loan Documents", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_01_05", "name": "Tax Documents (ITR, GST Returns)", "accepts": [".pdf"] },
+          { "id": "SCAT_01_06", "name": "Invoices & Bills", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_01_07", "name": "Payment Receipts", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_01_08", "name": "Account Statements", "accepts": [".pdf", ".xlsx"] }
+        ]
+      },
+      {
+        "id": "SCAT_02",
+        "name": "Personal Documents",
+        "description": "Identity proofs, certificates, personal records",
+        "icon": "user-circle",
+        "color": "#3B82F6",
+        "subcategories": [
+          { "id": "SCAT_02_01", "name": "PAN Card", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_02", "name": "Aadhaar Card", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_03", "name": "Passport", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_04", "name": "Driving License", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_05", "name": "Voter ID", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_06", "name": "Marriage Certificate", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_07", "name": "Birth Certificate", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_08", "name": "Death Certificate", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_09", "name": "Educational Certificates", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_02_10", "name": "Employment Documents", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_02_11", "name": "Medical Records", "accepts": [".pdf", ".jpg", ".png"] }
+        ]
+      },
+      {
+        "id": "SCAT_03",
+        "name": "Property Documents",
+        "description": "Title deeds, property records, possession documents",
+        "icon": "building-2",
+        "color": "#F59E0B",
+        "subcategories": [
+          { "id": "SCAT_03_01", "name": "Sale Deed / Title Deed", "accepts": [".pdf"] },
+          { "id": "SCAT_03_02", "name": "Property Tax Receipts", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_03_03", "name": "Encumbrance Certificate", "accepts": [".pdf"] },
+          { "id": "SCAT_03_04", "name": "Possession Certificate", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_03_05", "name": "Building Plan / Approval", "accepts": [".pdf"] },
+          { "id": "SCAT_03_06", "name": "Utility Bills (Electricity, Water)", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_03_07", "name": "Rent Agreement / Lease Deed", "accepts": [".pdf"] },
+          { "id": "SCAT_03_08", "name": "Property Valuation Report", "accepts": [".pdf"] },
+          { "id": "SCAT_03_09", "name": "Survey Documents / Map", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_03_10", "name": "Mutation Records", "accepts": [".pdf"] }
+        ]
+      },
+      {
+        "id": "SCAT_04",
+        "name": "Correspondence",
+        "description": "Emails, letters, notices, meeting records",
+        "icon": "mail",
+        "color": "#8B5CF6",
+        "subcategories": [
+          { "id": "SCAT_04_01", "name": "Email Communications", "accepts": [".pdf", ".eml", ".msg"] },
+          { "id": "SCAT_04_02", "name": "Letters & Notices Received", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_04_03", "name": "WhatsApp / SMS Screenshots", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_04_04", "name": "Meeting Minutes", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_04_05", "name": "Memorandum of Understanding (MOU)", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_04_06", "name": "Settlement Correspondence", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_04_07", "name": "Demand Letters", "accepts": [".pdf", ".jpg", ".png"] }
+        ]
+      },
+      {
+        "id": "SCAT_05",
+        "name": "Evidence & Exhibits",
+        "description": "Photographs, videos, witness materials, expert reports",
+        "icon": "camera",
+        "color": "#EC4899",
+        "subcategories": [
+          { "id": "SCAT_05_01", "name": "Photographs", "accepts": [".jpg", ".png", ".heic"] },
+          { "id": "SCAT_05_02", "name": "Video Recordings", "accepts": [".mp4", ".mov", ".avi"] },
+          { "id": "SCAT_05_03", "name": "Audio Recordings", "accepts": [".mp3", ".wav", ".m4a"] },
+          { "id": "SCAT_05_04", "name": "CCTV Footage", "accepts": [".mp4", ".avi"] },
+          { "id": "SCAT_05_05", "name": "Witness Statements (Draft)", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_05_06", "name": "Expert Reports", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_05_07", "name": "Forensic Reports", "accepts": [".pdf"] },
+          { "id": "SCAT_05_08", "name": "Site Inspection Reports", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_05_09", "name": "Physical Evidence Photos", "accepts": [".jpg", ".png"] }
+        ]
+      },
+      {
+        "id": "SCAT_06",
+        "name": "Legal Documents",
+        "description": "Previous orders, notices, police reports, legal records",
+        "icon": "scale",
+        "color": "#DC2626",
+        "subcategories": [
+          { "id": "SCAT_06_01", "name": "Previous Court Orders", "accepts": [".pdf"] },
+          { "id": "SCAT_06_02", "name": "Judgments / Decrees", "accepts": [".pdf"] },
+          { "id": "SCAT_06_03", "name": "Legal Notices Received", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_06_04", "name": "FIR Copy", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_06_05", "name": "Police Complaint Copy", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_06_06", "name": "Charge Sheet", "accepts": [".pdf"] },
+          { "id": "SCAT_06_07", "name": "Bail Order", "accepts": [".pdf"] },
+          { "id": "SCAT_06_08", "name": "Arbitration Award", "accepts": [".pdf"] },
+          { "id": "SCAT_06_09", "name": "Settlement Deed", "accepts": [".pdf"] },
+          { "id": "SCAT_06_10", "name": "Power of Attorney", "accepts": [".pdf"] },
+          { "id": "SCAT_06_11", "name": "Affidavits", "accepts": [".pdf"] }
+        ]
+      },
+      {
+        "id": "SCAT_07",
+        "name": "Business Documents",
+        "description": "Company records, financial statements, corporate documents",
+        "icon": "briefcase",
+        "color": "#0891B2",
+        "subcategories": [
+          { "id": "SCAT_07_01", "name": "Certificate of Incorporation", "accepts": [".pdf"] },
+          { "id": "SCAT_07_02", "name": "Memorandum of Association (MOA)", "accepts": [".pdf"] },
+          { "id": "SCAT_07_03", "name": "Articles of Association (AOA)", "accepts": [".pdf"] },
+          { "id": "SCAT_07_04", "name": "Shareholders Agreement", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_07_05", "name": "Board Resolutions", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_07_06", "name": "Annual Financial Statements", "accepts": [".pdf", ".xlsx"] },
+          { "id": "SCAT_07_07", "name": "Audit Reports", "accepts": [".pdf"] },
+          { "id": "SCAT_07_08", "name": "Partnership Deed", "accepts": [".pdf"] },
+          { "id": "SCAT_07_09", "name": "LLP Agreement", "accepts": [".pdf"] },
+          { "id": "SCAT_07_10", "name": "Trade License", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_07_11", "name": "GST Registration", "accepts": [".pdf"] },
+          { "id": "SCAT_07_12", "name": "Import/Export License", "accepts": [".pdf"] }
+        ]
+      },
+      {
+        "id": "SCAT_08",
+        "name": "Government & Regulatory",
+        "description": "Government notices, regulatory documents, compliance records",
+        "icon": "landmark",
+        "color": "#7C3AED",
+        "subcategories": [
+          { "id": "SCAT_08_01", "name": "Government Notice / Order", "accepts": [".pdf"] },
+          { "id": "SCAT_08_02", "name": "Regulatory Authority Letters", "accepts": [".pdf"] },
+          { "id": "SCAT_08_03", "name": "License / Permit Documents", "accepts": [".pdf"] },
+          { "id": "SCAT_08_04", "name": "Compliance Certificates", "accepts": [".pdf"] },
+          { "id": "SCAT_08_05", "name": "RTI Replies", "accepts": [".pdf"] },
+          { "id": "SCAT_08_06", "name": "Public Notice", "accepts": [".pdf", ".jpg", ".png"] }
+        ]
+      },
+      {
+        "id": "SCAT_09",
+        "name": "Insurance Documents",
+        "description": "Insurance policies, claims, settlement records",
+        "icon": "shield-check",
+        "color": "#059669",
+        "subcategories": [
+          { "id": "SCAT_09_01", "name": "Insurance Policy", "accepts": [".pdf"] },
+          { "id": "SCAT_09_02", "name": "Insurance Claim Form", "accepts": [".pdf", ".jpg", ".png"] },
+          { "id": "SCAT_09_03", "name": "Claim Settlement Letter", "accepts": [".pdf"] },
+          { "id": "SCAT_09_04", "name": "Survey Report", "accepts": [".pdf"] },
+          { "id": "SCAT_09_05", "name": "Premium Payment Receipts", "accepts": [".pdf", ".jpg", ".png"] }
+        ]
+      },
+      {
+        "id": "SCAT_10",
+        "name": "Other Documents",
+        "description": "Miscellaneous supporting documents",
+        "icon": "folder",
+        "color": "#6B7280",
+        "subcategories": [
+          { "id": "SCAT_10_01", "name": "Miscellaneous Supporting Documents", "accepts": [".pdf", ".docx", ".jpg", ".png"] },
+          { "id": "SCAT_10_02", "name": "Reference Documents", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_10_03", "name": "Background Research", "accepts": [".pdf", ".docx"] },
+          { "id": "SCAT_10_04", "name": "Others", "accepts": [".pdf", ".docx",".jpg", ".png"] }
+        ]
+      }
+    ],
     "statutes": [
       {
         "id": "STAT_001",
