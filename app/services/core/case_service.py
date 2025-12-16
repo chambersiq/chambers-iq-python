@@ -123,10 +123,18 @@ class CaseService:
         return self._populate_client_name(Case(**item)) if item else None
 
     def update_case_by_id(self, company_id: str, case_id: str, data: CaseCreate) -> Case:
-        attributes = self.repo.update(company_id, "", case_id, data.model_dump(exclude_unset=True))
+        updates = data.model_dump(exclude_unset=True)
+
+        # Handle client reassignment if clientId changed
+        new_client_id = updates.get('clientId')
+        if new_client_id:
+            # Verify the new client belongs to the company
+            new_client = self.client_repo.get_by_id(company_id, new_client_id)
+            if not new_client:
+                raise ValueError("New client not found or does not belong to your company")
+
+        attributes = self.repo.update(company_id, "", case_id, updates)
         return self._populate_client_name(Case(**attributes))
 
     def delete_case_by_id(self, company_id: str, case_id: str) -> None:
         self.repo.delete(company_id, "", case_id)
-
-

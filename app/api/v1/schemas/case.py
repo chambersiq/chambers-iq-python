@@ -5,6 +5,7 @@ from datetime import datetime
 class Party(BaseModel):
     name: str
     type: str
+    address: Optional[str] = None
     opposingCounselName: Optional[str] = None
     opposingCounselFirm: Optional[str] = None
     opposingCounselEmail: Optional[str] = None
@@ -58,6 +59,7 @@ class FeeArrangement(str, Enum):
 
 class CaseBase(BaseModel):
     # Basic Info
+    clientId: str  # Required for both create and update
     caseNumber: Optional[str] = None
     caseName: str
 
@@ -75,8 +77,8 @@ class CaseBase(BaseModel):
 
     # Case Details
     jurisdiction: Optional[str] = None
-    courtLevelId: Optional[str] = None # Added for Phase 2
-    caseTypeId: Optional[str] = None # Added for Phase 2
+    courtLevelId: str # Required for Phase 2 to prevent GSI NULL errors
+    caseTypeId: str # Required for Phase 2 categorization
     practiceArea: Optional[str] = None # Added for Phase 2
     primaryStatuteId: Optional[str] = None # Added for Phase 2
     limitationYears: Optional[int] = None # Added for Phase 2
