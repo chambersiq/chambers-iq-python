@@ -133,13 +133,13 @@ class DraftContextManager:
             # Dynamic mapping of common case fields to fact keys
             # Add more mappings here as needed
             field_mappings = {
-                'caseNumber': 'case_number',
+                'docketNumber': 'case_number',  # Official court case number for AI drafting
                 'courtName': 'court_name',
                 'jurisdiction': 'jurisdiction',
                 'clientName': 'petitioner_name',
                 'opposingPartyName': 'respondent_name',
                 'caseSummary': 'case_summary',
-                'clientPosition': 'client_position', 
+                'clientPosition': 'client_position',
                 'prayer': 'prayer',
                 'judgeName': 'judge_name',
                 'filingDate': 'filing_date',
