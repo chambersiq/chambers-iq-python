@@ -13,8 +13,17 @@ Analyze the provided sample documents (Sample 1, Sample 2, etc.) to identify the
     - If clauses vary slightly, create a robust version that covers the common intent.
     - If clauses are optional (appear in some but not all), mark them as such or include them with a note.
 
-## Output Format
-Return ONLY the Master Template text. Do not include conversational filler ("Here is the template...").
+## HTML Output Format
+Generate templates using proper HTML tags for formatting:
+- Use <strong>text</strong> for bold text
+- Use <em>text</em> for italic text
+- Use <u>text</u> for underlined text
+- Use <ul><li>item</li></ul> for unordered lists
+- Use <ol><li>item</li></ol> for ordered lists
+- Use <p>text</p> for paragraphs
+- Use <br> for line breaks
+
+Return ONLY the Master Template HTML. Do not include conversational filler ("Here is the template...").
 Start directly with the document title.
 
 ## Variable Conventions
