@@ -85,29 +85,31 @@ def template_architect_agent(state: LegalWorkflowState):
             # 1. Download from S3
             response = s3.client.get_object(Bucket=settings.S3_BUCKET_NAME, Key=s3_key)
             file_content = response['Body'].read()
-            
-            # 2. Extract Text based on extension OR content header
-            is_pdf = filename.endswith(".pdf") or file_content.startswith(b'%PDF-')
-            
-            if is_pdf:
-                try:
-                    from pypdf import PdfReader
-                    reader = PdfReader(io.BytesIO(file_content))
-                    for page in reader.pages:
-                        extracted = page.extract_text()
-                        if extracted:
-                            text += extracted + "\n"
-                    print(f"    ✓ Extracted {len(text)} chars from PDF")
-                except ImportError:
-                    print("    ❌ pypdf not installed, cannot read PDF")
-                    text = "[Error: pypdf not installed]"
-                except Exception as e:
-                    print(f"    ❌ PDF Parse Error: {e}")
-                    text = f"[Error parsing PDF: {str(e)}]"
+
+            # 2. Use DocumentProcessor for robust text extraction
+            from app.services.lib.document_processor import DocumentProcessor
+            processor = DocumentProcessor()
+            result = processor.process_document(file_content, filename)
+
+            # 3. Log format detection and extraction results
+            format_info = result.get("format", {})
+            print(f"    🔍 Format: {format_info.get('format_type', 'unknown')}")
+            print(f"    📋 Supported: {result.get('supported', False)}")
+            print(f"    📋 Scanned: {format_info.get('is_scanned', False)}")
+            print(f"    📊 Quality: {result.get('quality_score', 0.0)}")
+
+            # 4. Get extracted text
+            text = result.get("text", "")
+
+            if result.get("supported", False):
+                print(f"    ✓ Extracted {len(text)} chars using DocumentProcessor")
+                # Show text preview for debugging
+                text_preview = text[:300].replace('\n', ' ').replace('\r', ' ')
+                print(f"    📄 Text preview: {text_preview}...")
             else:
-                # Assume text
-                text = file_content.decode('utf-8', errors='ignore')
-                print(f"    ✓ Extracted {len(text)} chars from Text file")
+                print(f"    ⚠️ Format not fully supported: {result.get('error_message', 'Unknown error')}")
+                if not text.strip():
+                    text = f"[Unsupported format: {format_info.get('format_type', 'unknown')} - {result.get('error_message', '')}]"
 
             if not text.strip():
                  print("    ⚠️ Warning: Extracted text is empty")

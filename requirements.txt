@@ -15,3 +15,8 @@ langchain-core>=0.1.30
 anthropic>=0.18.1
 pypdf>=4.0.0
 langchain-openai>=0.0.8
+
+# Document Processing - Phase 1A
+python-docx>=1.1.0        # Word document processing
+PyMuPDF>=1.23.0           # Advanced PDF processing
+puremagic>=1.20       # File type detection (pure python)

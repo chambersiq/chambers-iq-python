@@ -161,8 +161,28 @@ class TemplateService:
         return True
 
     def generate_template_from_samples(self, company_id: str, generation_id: str, prompt: str) -> str:
-        # Mock generation for now
+        """
+        Generate template from sample documents using shared DocumentProcessor.
+        """
         # In future: list objects from s3_key prefix to get all samples
+        s3_prefix = f"{company_id}/templates/ai-generation/{generation_id}/"
+
+        # For now, return mock template - will be enhanced with actual sample processing
+        # TODO: Implement sample document processing using DocumentProcessor
+
+        # Example of how it would work:
+        # from app.services.lib.document_processor import DocumentProcessor
+        # processor = DocumentProcessor()
+        #
+        # sample_texts = []
+        # for sample_file in list_sample_files(s3_prefix):
+        #     file_content = self.s3.get_file_content(sample_file['key'])
+        #     result = processor.process_document(file_content, sample_file['name'])
+        #     if result['supported']:
+        #         sample_texts.append(result['text'])
+        #
+        # # Use sample_texts for template generation...
+
         return f"""AGREEMENT
 
 This Agreement is made on {{current_date}} between {{client_name}} ("Client") and {{opposing_party}} ("Contractor").

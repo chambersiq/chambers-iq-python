@@ -85,44 +85,76 @@ class DocumentService:
         return True
 
     def analyze_document(self, document_id: str, client_position: str = "Unknown") -> bool:
+        print(f"🔍 Starting document analysis for {document_id}")
+
         # Background task doesn't have company_id. Use global lookup (Scan SK).
         item = self.repo.get_by_id_global(document_id)
         if not item:
+            print(f"❌ Document {document_id} not found in database")
             return False
-        
+
         doc = Document(**item)
         if not doc.s3Key:
+            print(f"❌ Document {document_id} has no S3 key")
             return False
-            
+
+        print(f"📄 Processing document: {doc.name} ({doc.originalName})")
+
         # 1. Fetch File
         file_content = self.s3.get_file_content(doc.s3Key)
         if not file_content:
-            return False
-            
-        # 2. Extract Text
-        text = ""
-        try:
-            if doc.name.lower().endswith(".pdf"):
-                import io
-                from pypdf import PdfReader
-                reader = PdfReader(io.BytesIO(file_content))
-                for page in reader.pages:
-                    text += page.extract_text() + "\n"
-            else:
-                # Assume text/plain or similar
-                text = file_content.decode("utf-8", errors="ignore")
-        except Exception as e:
-            print(f"Extraction Error: {e}")
-            self.repo.update(doc.companyId, document_id, {
-                "aiStatus": "failed", 
-                "aiSummary": f"Failed to extract text: {str(e)}"
-            })
+            print(f"❌ Failed to download file from S3: {doc.s3Key}")
             return False
 
+        print(f"📥 Downloaded {len(file_content)} bytes from S3")
+
+        # 2. Process document using shared DocumentProcessor
+        from app.services.lib.document_processor import DocumentProcessor
+
+        processor = DocumentProcessor()
+        result = processor.process_document(file_content, doc.name)
+
+        # Log format detection results
+        format_info = result.get("format", {})
+        print(f"🔍 Detected format: {format_info.get('format_type', 'unknown')}")
+        print(f"📋 Supported: {result.get('supported', False)}")
+        print(f"📋 Scanned PDF: {format_info.get('is_scanned', False)}")
+        print(f"📊 Quality Score: {result.get('quality_score', 0.0)}")
+        print(f"📊 Word Count: {result.get('word_count', 0)}")
+
+        # 3. Handle unsupported formats
+        if not result["supported"]:
+            format_type = result["format"].get("format_type")
+            if format_type == "image":
+                summary = "Image uploaded successfully. AI processing not supported for images yet."
+            elif format_type == "pdf" and result["format"].get("is_scanned"):
+                summary = "Scanned PDF uploaded successfully. AI processing not supported for scanned documents yet."
+            else:
+                summary = result["error_message"] or "File uploaded successfully. AI processing not supported for this format yet."
+
+            self.repo.update(doc.companyId, document_id, {
+                "aiStatus": "uploaded_only",  # Successfully uploaded, no AI processing
+                "aiSummary": summary,
+                "processingFormat": result["format"].get("format_type", "unknown"),
+                "qualityScore": 0.0
+            })
+            return True  # Upload succeeded, just no AI processing
+
+        # 4. Extract text and quality info
+        text = result["text"]
+        quality_score = result["quality_score"]
+
+        # Log extracted text (first 500 chars to avoid binary data)
+        text_preview = text[:500].replace('\n', ' ').replace('\r', ' ') if text else ""
+        print(f"📄 Extracted text preview: {text_preview}...")
+        print(f"📏 Total text length: {len(text) if text else 0} characters")
+
         if not text.strip():
+             print(f"❌ Empty document text extracted")
              self.repo.update(doc.companyId, document_id, {
-                "aiStatus": "failed", 
-                "aiSummary": "Empty document text"
+                "aiStatus": "failed",
+                "aiSummary": "Empty document text",
+                "qualityScore": 0.0
             })
              return False
 
@@ -134,20 +166,22 @@ class DocumentService:
                 "client_position": client_position,
                 "is_bundle": False
             }
-            result = doc_analysis_app.invoke(inputs)
-            
+            ai_result = doc_analysis_app.invoke(inputs)
+
             # 4. Save Results
             updates = {
                 "aiStatus": "completed",
-                "aiSummary": result.get("final_advice", "")[:5000], 
-                "description": result.get("final_advice", "")[:5000], # Overwrite user description with AI summary
+                "aiSummary": ai_result.get("final_advice", "")[:5000],
+                "description": ai_result.get("final_advice", "")[:5000], # Overwrite user description with AI summary
+                "qualityScore": quality_score,
+                "processingFormat": result["format"].get("format_type", "unknown"),
                 "extractedData": {
-                    "category": result.get("category"),
-                    "docType": result.get("doc_type"),
-                    "scanQuality": result.get("scan_quality"),
-                    "specialistAnalysis": result.get("specialist_analysis"),
-                    "finalAdvice": result.get("final_advice"),
-                    "isBundle": result.get("is_bundle")
+                    "category": ai_result.get("category"),
+                    "docType": ai_result.get("doc_type"),
+                    "scanQuality": ai_result.get("scan_quality"),
+                    "specialistAnalysis": ai_result.get("specialist_analysis"),
+                    "finalAdvice": ai_result.get("final_advice"),
+                    "isBundle": ai_result.get("is_bundle")
                 }
             }
             # Update using companyId as parentId in repo arguments

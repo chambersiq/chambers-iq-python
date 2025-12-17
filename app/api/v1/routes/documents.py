@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
 from typing import List, Dict, Any
 from app.services.core.document_service import DocumentService
 from app.api.v1.schemas.document import Document, DocumentCreate
+from app.services.lib.document_processor import DocumentProcessor
 
 router = APIRouter()
 
@@ -78,6 +79,6 @@ def trigger_analysis(
     doc = service.get_document(x_company_id, document_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     background_tasks.add_task(service.analyze_document, document_id)
     return {"status": "processing_started"}
